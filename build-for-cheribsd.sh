@@ -13,7 +13,7 @@ READLINE_INCLUDE_DIR=${CHERIBSD_SYSROOT}/usr/include/edit/
 sh auto/configure --with-debug
 
 COMMON_FLAGS="-pipe --sysroot=${CHERIBSD_SYSROOT} -B${CHERILDDIR} -target cheri-unknown-freebsd -mabi=sandbox -msoft-float -mxgot -O0 -G0 -static -integrated-as"
-COMPILE_FLAGS="${COMMON_FLAGS} -isystem ${READLINE_INCLUDE_DIR} -Werror=cheri-capability-misuse -Werror=implicit-function-declaration -Werror=format -Werror=undefined-internal"
+COMPILE_FLAGS="${COMMON_FLAGS} -isystem ${READLINE_INCLUDE_DIR} -Wcheri-capability-misuse -Werror=implicit-function-declaration -Werror=format -Werror=undefined-internal"
 
 export CFLAGS=${COMPILE_FLAGS}
 export CFLAGS=${COMPILE_FLAGS}
