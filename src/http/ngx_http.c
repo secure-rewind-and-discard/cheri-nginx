@@ -427,8 +427,8 @@ ngx_http_init_headers_in_hash(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
 
     hash.hash = &cmcf->headers_in_hash;
     hash.key = ngx_hash_key_lc;
-    hash.max_size = 512;
-    hash.bucket_size = ngx_align(64, ngx_cacheline_size);
+    hash.max_size = 2048;
+    hash.bucket_size = ngx_align(256, ngx_cacheline_size);
     hash.name = "headers_in_hash";
     hash.pool = cf->pool;
     hash.temp_pool = NULL;
@@ -2001,8 +2001,8 @@ ngx_http_merge_types(ngx_conf_t *cf, ngx_array_t **keys, ngx_hash_t *types_hash,
 
         hash.hash = types_hash;
         hash.key = NULL;
-        hash.max_size = 2048;
-        hash.bucket_size = 64;
+        hash.max_size = 8192;
+        hash.bucket_size = 256;
         hash.name = "test_types_hash";
         hash.pool = cf->pool;
         hash.temp_pool = NULL;
@@ -2031,8 +2031,8 @@ ngx_http_merge_types(ngx_conf_t *cf, ngx_array_t **keys, ngx_hash_t *types_hash,
 
         hash.hash = prev_types_hash;
         hash.key = NULL;
-        hash.max_size = 2048;
-        hash.bucket_size = 64;
+        hash.max_size = 8192;
+        hash.bucket_size = 256;
         hash.name = "test_types_hash";
         hash.pool = cf->pool;
         hash.temp_pool = NULL;

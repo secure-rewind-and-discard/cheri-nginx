@@ -6379,7 +6379,7 @@ ngx_http_upstream_init_main_conf(ngx_conf_t *cf, void *conf)
 
     /* upstream_headers_in_hash */
 
-    if (ngx_array_init(&headers_in, cf->temp_pool, 32, sizeof(ngx_hash_key_t))
+    if (ngx_array_init(&headers_in, cf->temp_pool, 128, sizeof(ngx_hash_key_t))
         != NGX_OK)
     {
         return NGX_CONF_ERROR;
@@ -6398,8 +6398,8 @@ ngx_http_upstream_init_main_conf(ngx_conf_t *cf, void *conf)
 
     hash.hash = &umcf->headers_in_hash;
     hash.key = ngx_hash_key_lc;
-    hash.max_size = 512;
-    hash.bucket_size = ngx_align(64, ngx_cacheline_size);
+    hash.max_size = 2048;
+    hash.bucket_size = ngx_align(256, ngx_cacheline_size);
     hash.name = "upstream_headers_in_hash";
     hash.pool = cf->pool;
     hash.temp_pool = NULL;

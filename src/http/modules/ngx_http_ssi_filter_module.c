@@ -2844,8 +2844,8 @@ ngx_http_ssi_init_main_conf(ngx_conf_t *cf, void *conf)
 
     hash.hash = &smcf->hash;
     hash.key = ngx_hash_key;
-    hash.max_size = 1024;
-    hash.bucket_size = ngx_cacheline_size;
+    hash.max_size = 4096;
+    hash.bucket_size = ngx_cacheline_size * 4 /* XXX */;
     hash.name = "ssi_command_hash";
     hash.pool = cf->pool;
     hash.temp_pool = NULL;

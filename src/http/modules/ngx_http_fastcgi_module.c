@@ -3089,8 +3089,8 @@ ngx_http_fastcgi_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
 
     ngx_conf_merge_str_value(conf->index, prev->index, "");
 
-    hash.max_size = 512;
-    hash.bucket_size = ngx_align(64, ngx_cacheline_size);
+    hash.max_size = 2048;
+    hash.bucket_size = ngx_align(256, ngx_cacheline_size);
     hash.name = "fastcgi_hide_headers_hash";
 
     if (ngx_http_upstream_hide_headers_hash(cf, &conf->upstream,
@@ -3359,8 +3359,8 @@ ngx_http_fastcgi_init_params(ngx_conf_t *cf, ngx_http_fastcgi_loc_conf_t *conf,
 
     hash.hash = &params->hash;
     hash.key = ngx_hash_key_lc;
-    hash.max_size = 512;
-    hash.bucket_size = 64;
+    hash.max_size = 2048;
+    hash.bucket_size = 256;
     hash.name = "fastcgi_params_hash";
     hash.pool = cf->pool;
     hash.temp_pool = NULL;

@@ -3392,16 +3392,16 @@ ngx_http_core_init_main_conf(ngx_conf_t *cf, void *conf)
 {
     ngx_http_core_main_conf_t *cmcf = conf;
 
-    ngx_conf_init_uint_value(cmcf->server_names_hash_max_size, 512);
+    ngx_conf_init_uint_value(cmcf->server_names_hash_max_size, 2048);
     ngx_conf_init_uint_value(cmcf->server_names_hash_bucket_size,
-                             ngx_cacheline_size);
+                             ngx_cacheline_size * 4);
 
     cmcf->server_names_hash_bucket_size =
             ngx_align(cmcf->server_names_hash_bucket_size, ngx_cacheline_size);
 
 
-    ngx_conf_init_uint_value(cmcf->variables_hash_max_size, 1024);
-    ngx_conf_init_uint_value(cmcf->variables_hash_bucket_size, 64);
+    ngx_conf_init_uint_value(cmcf->variables_hash_max_size, 4096);
+    ngx_conf_init_uint_value(cmcf->variables_hash_bucket_size, 256);
 
     cmcf->variables_hash_bucket_size =
                ngx_align(cmcf->variables_hash_bucket_size, ngx_cacheline_size);
@@ -3671,10 +3671,10 @@ ngx_http_core_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
     }
 
     ngx_conf_merge_uint_value(conf->types_hash_max_size,
-                              prev->types_hash_max_size, 1024);
+                              prev->types_hash_max_size, 4096);
 
     ngx_conf_merge_uint_value(conf->types_hash_bucket_size,
-                              prev->types_hash_bucket_size, 64);
+                              prev->types_hash_bucket_size, 256);
 
     conf->types_hash_bucket_size = ngx_align(conf->types_hash_bucket_size,
                                              ngx_cacheline_size);

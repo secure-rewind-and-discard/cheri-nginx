@@ -3290,10 +3290,10 @@ ngx_http_proxy_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
                               NGX_HTTP_VERSION_10);
 
     ngx_conf_merge_uint_value(conf->headers_hash_max_size,
-                              prev->headers_hash_max_size, 512);
+                              prev->headers_hash_max_size, 2048);
 
     ngx_conf_merge_uint_value(conf->headers_hash_bucket_size,
-                              prev->headers_hash_bucket_size, 64);
+                              prev->headers_hash_bucket_size, 256);
 
     conf->headers_hash_bucket_size = ngx_align(conf->headers_hash_bucket_size,
                                                ngx_cacheline_size);
