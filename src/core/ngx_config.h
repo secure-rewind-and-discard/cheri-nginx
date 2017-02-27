@@ -48,6 +48,11 @@
  */
 #undef NGX_HAVE_LITTLE_ENDIAN
 
+/*
+ * sendfile(2) appears to be broken.
+ */
+#undef NGX_HAVE_SENDFILE
+
 #ifndef NGX_HAVE_SO_SNDLOWAT
 #define NGX_HAVE_SO_SNDLOWAT     1
 #endif
