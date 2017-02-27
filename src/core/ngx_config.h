@@ -43,6 +43,10 @@
 
 #endif
 
+/*
+ * CHERI is big endian.
+ */
+#undef NGX_HAVE_LITTLE_ENDIAN
 
 #ifndef NGX_HAVE_SO_SNDLOWAT
 #define NGX_HAVE_SO_SNDLOWAT     1
