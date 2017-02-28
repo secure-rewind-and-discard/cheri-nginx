@@ -16,7 +16,7 @@ if [ $# -eq 4 ]; then
 		) &
 	done
 	wait
-	echo -n "$((${NFETCH} * ${NPROC})) requests for ${URL}, spread among ${NPROC} parallel processes, in "
+	echo -n "${0}: $((${NFETCH} * ${NPROC})) requests for ${URL}, spread among ${NPROC} parallel processes, in "
 else
 	( /usr/bin/time -h "${0}" "${URL}" "${NPROC}" "${NFETCH}" measure-please ) 2>&1 | sed -E 's/	//;s/	+/, /g'
 fi
