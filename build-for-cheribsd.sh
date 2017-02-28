@@ -23,6 +23,10 @@ make install DESTDIR=${INSTALL_DIR}
 chmod -R a+rX ${INSTALL_DIR}
 
 cp fetchbench ${INSTALL_DIR}/usr/local/nginx/sbin/fetchbench
-chown 0:0 ${INSTALL_DIR}/usr/local/nginx/sbin/fetchbench
+#chown 0:0 ${INSTALL_DIR}/usr/local/nginx/sbin/fetchbench
 chmod 755 ${INSTALL_DIR}/usr/local/nginx/sbin/fetchbench
+
+cp nginx-benchmark.sh ${INSTALL_DIR}/
+#chown 0:0 ${INSTALL_DIR}/nginx-benchmark.sh
+chmod 755 ${INSTALL_DIR}/nginx-benchmark.sh
 
