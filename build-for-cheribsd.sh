@@ -23,3 +23,7 @@ make
 make install DESTDIR=${INSTALL_DIR}
 chmod -R a+rX ${INSTALL_DIR}
 
+cp fetchbench ${INSTALL_DIR}/usr/local/nginx/sbin/fetchbench
+chown 0:0 ${INSTALL_DIR}/usr/local/nginx/sbin/fetchbench
+chmod 755 ${INSTALL_DIR}/usr/local/nginx/sbin/fetchbench
+
