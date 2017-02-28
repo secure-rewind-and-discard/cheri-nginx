@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-set -e
+#!/bin/sh -e
 CHERI_ROOT="${HOME}/cheri"
 CHERISDK="${CHERI_ROOT}/output/sdk256/bin"
 CHERIBSD_SYSROOT="${CHERI_ROOT}/output/sdk256/sysroot"
