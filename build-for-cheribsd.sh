@@ -30,7 +30,8 @@ export CFLAGS=${COMPILE_FLAGS}
 export PATH=${CHERISDK}:${CHERILDDIR}:$PATH
 export CC=${CHERISDK}/clang
 
-sed -i '' "s!^CC .*!CC = ${CC}!;s!^CFLAGS .*!CFLAGS = ${CFLAGS}!;s!^CPP .*!CPP = ${CC} -E!;s!^LINK .*!LINK = ${CC} ${CFLAGS} -fuse-ld=lld!;s!-Wl,-E!!" objs/Makefile
+#sed -i '' "s!^CC .*!CC = ${CC}!;s!^CFLAGS .*!CFLAGS = ${CFLAGS}!;s!^CPP .*!CPP = ${CC} -E!;s!^LINK .*!LINK = ${CC} ${CFLAGS} -fuse-ld=lld!;s!-Wl,-E!!" objs/Makefile
+sed -i '' "s!^CC .*!CC = ${CC}!;s!^CFLAGS .*!CFLAGS = ${CFLAGS}!;s!^CPP .*!CPP = ${CC} -E!;s!^LINK .*!LINK = ${CC} ${CFLAGS}!;s!-Wl,-E!!" objs/Makefile
 make -j8
 make install DESTDIR=${INSTALL_DIR}
 chmod -R a+rX ${INSTALL_DIR}
