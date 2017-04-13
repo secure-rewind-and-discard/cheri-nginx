@@ -54,10 +54,19 @@ if [ -x $NGX_AUTOTEST ]; then
         yes)
             # /bin/sh is used to intercept "Killed" or "Abort trap" messages
             if test -n "$NGX_CROSSCOMPILING"; then
-                echo " found (cross compiling so cannot run)"
-                ngx_found=yes
-                if test -n "$ngx_feature_name"; then
-                    have=$ngx_have_feature . auto/have
+                envname="$ngx_feature_name"
+                eval "env_override=\$$envname"
+                if test -n "$env_override"; then
+                    echo " cross: $env_override"
+                    if test "x$env_override" = "xyes"; then
+                        ngx_found=yes
+                        if test -n "$ngx_feature_name"; then
+                            have=$ngx_have_feature . auto/have
+                        fi
+                    fi
+                else
+                    echo "Error: crosscompiling -> cannot run test program"
+                    echo "   Set $envname to yes or no" && exit 1
                 fi
             elif /bin/sh -c $NGX_AUTOTEST >> $NGX_AUTOCONF_ERR 2>&1; then
                 echo " found"
