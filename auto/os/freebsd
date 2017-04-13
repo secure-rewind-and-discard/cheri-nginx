@@ -18,16 +18,25 @@ ngx_spacer='
 # __FreeBSD_version is used for the testing of the build environment.
 # sysctl kern.osreldate is used for the testing of the kernel capabilities.
 
-version=`grep "#define __FreeBSD_version" /usr/include/osreldate.h \
+version=`grep "#define __FreeBSD_version" "${NGX_SYSROOT}/usr/include/osreldate.h" \
          | sed -e 's/^.* \(.*\)$/\1/'`
 
-osreldate=`/sbin/sysctl -n kern.osreldate`
+if test -z "$version"; then
+    echo "FATAL: Cannot determine FreeBSD version from ${NGX_SYSROOT}/usr/include/osreldate.h"
+    exit 1
+fi
+
+if test -n "$NGX_CROSSCOMPILING"; then
+    osreldate=$version
+else
+    osreldate=`/sbin/sysctl -n kern.osreldate`
+fi
 
 
 # setproctitle() in libutil
 
-if [ \( $version -ge 500000 -a $version -lt 500012 \) \
-     -o $version -lt 410002 ]
+if [ \( "$version" -ge 500000 -a "$version" -lt 500012 \) \
+     -o "$version" -lt 410002 ]
 then
     echo " + setproctitle() in libutil"
 
