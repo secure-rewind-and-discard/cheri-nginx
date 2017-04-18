@@ -25,9 +25,11 @@ if test -n "$ngx_feature_path"; then
     done
 fi
 
+# Need to include stdlib.h to get NULL defined
 cat << END > $NGX_AUTOTEST.c
 
 #include <sys/types.h>
+#include <stdlib.h>
 $NGX_INCLUDE_UNISTD_H
 $ngx_feature_incs
 

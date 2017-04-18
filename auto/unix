@@ -150,9 +150,9 @@ fi
 
 
 ngx_feature="crypt()"
-ngx_feature_name=
+ngx_feature_name=NGX_HAVE_CRYPT
 ngx_feature_run=no
-ngx_feature_incs=
+ngx_feature_incs="#include <unistd.h>"
 ngx_feature_path=
 ngx_feature_libs=
 ngx_feature_test="crypt(\"test\", \"salt\");"
