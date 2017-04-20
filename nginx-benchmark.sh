@@ -17,15 +17,16 @@ else
 	file "${NGINX}"
 fi
 
-echo "${0}: starting nginx..."
-${NGINX}
-
 echo "${0}: running benchmark ${NTIMES} times..."
 for i in `jot ${NTIMES}`; do
-	${FETCHBENCH} http://127.0.0.1/ 5 200
-done
+	echo "${0}: starting nginx..."
+	export STATCOUNTERS_OUTPUT="/tmp/nginx-${i}.statcounters"
+	${NGINX}
 
-echo "${0}: stopping nginx..."
-${NGINX} -s stop
+	${FETCHBENCH} http://127.0.0.1/ 5 200
+
+	echo "${0}: stopping nginx..."
+	${NGINX} -s stop
+done
 
 echo "${0}: done"
