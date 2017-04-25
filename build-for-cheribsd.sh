@@ -12,7 +12,7 @@ case "$1" in
 		MABI="n64"
 		;;
 	*)
-		echo 'must specify either "cheri" or "hybrid"'
+		echo 'must specify either "cheri128" "cheri256" or "hybrid"'
 		exit 1
 esac
 
