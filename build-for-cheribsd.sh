@@ -1,7 +1,11 @@
 #!/bin/sh -ex
 
 case "$1" in
-	"cheri"|"")
+	"cheri128"|"")
+		MABI="purecap"
+		CPUFLAGS="-mcpu=cheri128"
+		;;
+	"cheri256"|"")
 		MABI="purecap"
 		;;
 	"hybrid")
@@ -22,7 +26,7 @@ INSTALL_DIR=${INSTALL_DIR:-${CHERI_ROOT}/output/rootfs256}
 # the output binary and the build will fail.
 sh auto/configure --with-debug --without-pcre --without-http_rewrite_module
 
-COMMON_FLAGS="-pipe --sysroot=${CHERIBSD_SYSROOT} -B${CHERISDK} -target cheri-unknown-freebsd -mabi=${MABI} -mxgot -O2 -msoft-float -ggdb -static -integrated-as"
+COMMON_FLAGS="-pipe --sysroot=${CHERIBSD_SYSROOT} -B${CHERISDK} -target cheri-unknown-freebsd -mabi=${MABI} ${CPUFLAGS} -mxgot -O2 -msoft-float -ggdb -static -integrated-as"
 COMPILE_FLAGS="${COMMON_FLAGS} -Wcheri-capability-misuse -Werror=implicit-function-declaration -Werror=format -Werror=undefined-internal"
 
 export CFLAGS="${COMPILE_FLAGS}"
