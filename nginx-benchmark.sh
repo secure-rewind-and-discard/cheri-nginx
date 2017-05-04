@@ -11,7 +11,7 @@ echo "${0}: invariants/witness:"
 sysctl -a | grep -E '(invariants|witness)'
 
 echo "${0}: nginx binary details:"
-file ${NGINX}
+file ${NGINX} || echo "file binary not installed"
 
 echo "${0}: starting nginx..."
 ${NGINX}
