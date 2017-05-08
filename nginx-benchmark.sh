@@ -17,6 +17,11 @@ else
 	file "${NGINX}"
 fi
 
+if ! command -v jot> /dev/null; then
+  echo "jot not found, cannot run benchmark!"
+  exit 1
+fi
+
 echo "${0}: running benchmark ${NTIMES} times..."
 for i in `jot ${NTIMES}`; do
 	echo "${0}: starting nginx..."
