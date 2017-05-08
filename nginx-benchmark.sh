@@ -17,14 +17,17 @@ else
 	file "${NGINX}"
 fi
 
-if ! command -v jot> /dev/null; then
-  echo "jot not found, cannot run benchmark!"
-  exit 1
+if command -v jot> /dev/null; then
+	LOOP=`jot ${NTIMES}`
+else
+	echo "jot not found, assuming benchmark must be run 10 times"
+	LOOP="1 2 3 4 5 6 7 8 9 10"
+	exit 1
 fi
 
 echo "${0}: running benchmark ${NTIMES} times..."
-for i in `jot ${NTIMES}`; do
-	echo "${0}: starting nginx..."
+for i in ${LOOP}; do
+	echo "${0}: starting nginx iteration ${i} ..."
 	export STATCOUNTERS_OUTPUT="/tmp/nginx-${i}.statcounters"
 	${NGINX}
 
