@@ -22,7 +22,6 @@ if command -v jot> /dev/null; then
 else
 	echo "jot not found, assuming benchmark must be run 10 times"
 	LOOP="1 2 3 4 5 6 7 8 9 10"
-	exit 1
 fi
 
 echo "${0}: running benchmark ${NTIMES} times..."
