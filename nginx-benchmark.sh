@@ -36,4 +36,4 @@ for i in ${LOOP}; do
 	${NGINX} -s stop
 done
 
-echo "${0}: done"
+echo "${0}: DONE RUNNING BENCHMARKS"
