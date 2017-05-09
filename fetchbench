@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 if [ $# -ne 3 -a $# -ne 4 ]; then
 	echo "usage: fetchbench url number-of-processes fetches-per-process"
