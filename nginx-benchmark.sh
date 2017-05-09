@@ -27,7 +27,8 @@ fi
 echo "${0}: running benchmark ${NTIMES} times..."
 for i in ${LOOP}; do
 	echo "${0}: starting nginx iteration ${i} ..."
-	export STATCOUNTERS_OUTPUT="/tmp/nginx.statcounters"
+	export STATCOUNTERS_FORMAT=csv
+	export STATCOUNTERS_OUTPUT="/tmp/nginx.statcounters.csv"
 	${NGINX}
 
 	${FETCHBENCH} http://127.0.0.1/ 5 200
