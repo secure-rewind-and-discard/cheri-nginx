@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh -xe
 
 NGINX=/usr/local/nginx/sbin/nginx
 FETCHBENCH=/usr/local/nginx/sbin/fetchbench
