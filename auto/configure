@@ -43,7 +43,15 @@ if test -z "$NGX_PLATFORM"; then
 
 else
     echo "building for $NGX_PLATFORM"
-    NGX_SYSTEM=$NGX_PLATFORM
+    if test -z "$NGX_SYSTEM"; then
+        NGX_SYSTEM=`echo $NGX_PLATFORM | cut -d: -f1`
+    fi
+    if test -z "$NGX_RELEASE"; then
+        NGX_RELEASE=`echo $NGX_PLATFORM | cut -d: -f2`
+    fi
+    if test -z "$NGX_MACHINE"; then
+        NGX_MACHINE=`echo $NGX_PLATFORM | cut -d: -f3`
+    fi
 fi
 
 . auto/cc/conf
