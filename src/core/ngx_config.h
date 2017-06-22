@@ -79,6 +79,12 @@ typedef intptr_t        ngx_int_t;
 typedef uintptr_t       ngx_uint_t;
 typedef intptr_t        ngx_flag_t;
 
+#ifdef _VADDR_T_DECLARED
+typedef vaddr_t		ngx_vaddr_t;
+#else
+typedef uintptr_t	ngx_vaddr_t;
+#endif
+
 
 #define NGX_INT32_LEN   (sizeof("-2147483648") - 1)
 #define NGX_INT64_LEN   (sizeof("-9223372036854775808") - 1)
@@ -98,8 +104,22 @@ typedef intptr_t        ngx_flag_t;
 #endif
 
 #define ngx_align(d, a)     (((d) + (a - 1)) & ~(a - 1))
+/* XXXAR: bitwise and on uintptr_t only works on the offset, so we add
+ * (requested alignment - current alignment offset) to the pointer instead */
+#if 0
 #define ngx_align_ptr(p, a)                                                   \
     (u_char *) (((uintptr_t) (p) + ((uintptr_t) a - 1)) & ~((uintptr_t) a - 1))
+<<<<<<< HEAD
+=======
+#endif
+static inline u_char*
+ngx_align_ptr(void* p, size_t align) {
+    if (((ngx_vaddr_t)p & (align - 1)) == 0)
+        return (u_char*)p;
+    /* XXXAR: TODO: assert that align is a power of two */
+    return ((u_char *)p + (align - ((ngx_vaddr_t)p & (align - 1))));
+}
+>>>>>>> cfa9a751 (Use a slightly more safe ngx_align_ptr())
 
 
 #define ngx_abort       abort
