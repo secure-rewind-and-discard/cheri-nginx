@@ -118,6 +118,8 @@ ngx_reset_pool(ngx_pool_t *pool)
     pool->large = NULL;
 }
 
+/* XXXAR: Ensure that we have sufficient alignment for CHERI */
+_Static_assert(NGX_ALIGNMENT >= sizeof(void*), "NGX_ALIGNMENT must be at least sizeof(void*)");
 
 void *
 ngx_palloc(ngx_pool_t *pool, size_t size)
