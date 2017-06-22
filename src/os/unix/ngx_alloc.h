@@ -31,6 +31,9 @@ void *ngx_calloc(size_t size, ngx_log_t *log);
 void *ngx_memalign(size_t alignment, size_t size, ngx_log_t *log);
 
 #else
+#ifdef __CHERI__
+#error "MEMORY ALIGNMENT IS REQUIRED FOR CHERI"
+#endif
 
 #define ngx_memalign(alignment, size, log)  ngx_alloc(size, log)
 
