@@ -77,7 +77,6 @@ case "$NGX_PLATFORM" in
 
 esac
 
-
 case "$NGX_MACHINE" in
 
     i386 | i686 | i86pc)
@@ -99,6 +98,11 @@ case "$NGX_MACHINE" in
     ia64 )
         have=NGX_ALIGNMENT value=16 . auto/define
         # TODO
+        NGX_MACH_CACHE_LINE=64
+    ;;
+
+    mips )
+        have=NGX_ALIGNMENT value="(int)(sizeof(void*) < 16 ? 16 : sizeof(void*))" . auto/define
         NGX_MACH_CACHE_LINE=64
     ;;
 
