@@ -19,7 +19,6 @@ def buildProjectWithCheribuild(String projectName, String extraArgs, String targ
             env.CPU = targetCPU
             ansiColor('xterm') {
                 sh '''
-                         echo Running in SDK image
                          env
                          pwd
                          cd $WORKSPACE
