@@ -7,7 +7,7 @@ def buildProjectWithCheribuild(String projectName, String extraArgs, String targ
     echo "Target CPU: ${targetCPU}, SDK CPU: ${sdkCPU}"
     // build steps that should happen on all nodes go here
     def sdkImage = docker.image("ctsrd/cheri-sdk-${sdkCPU}:latest")
-    // sdkImage.pull() // make sure we have the latest available from Docker Hub
+    sdkImage.pull() // make sure we have the latest available from Docker Hub
     stage("build ${targetCPU}") {
         dir(projectName) {
             checkout scm
