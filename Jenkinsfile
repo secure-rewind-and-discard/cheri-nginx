@@ -1,9 +1,10 @@
 pipeline {
   agent none
   stages {
-    stage("Build") {
+    stage('Build') {
       steps {
-        cheribuildProject('nginx', '--install-prefix /tmp/benchdir/nginx-$CPU --with-libstatcounters --nginx/no-debug-info')
+        sh 'pwd'
+        cheribuildProject 'nginx', '--install-prefix /tmp/benchdir/nginx-$CPU --with-libstatcounters --nginx/no-debug-info'
       }
     }
   }
