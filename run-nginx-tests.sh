@@ -1,3 +1,7 @@
 #!/bin/sh -xe
 # TODO: run the NGINX test suite
-sh -xe ./nginx-benchmark.sh
+pkg bootstrap && pkg install -y perl5 p5-TAP-Formatter-JUnit
+NGINX_DIR=$(realpath .)
+export TEST_NGINX_BINARY=${NGINX_DIR}/sbin/nginx
+# http://blogs.perl.org/users/confuseacat/2011/09/perl-testing-with-jenkinshudson-avoiding-some-pitfalls.html
+prove --formatter=TAP::Formatter::JUnit . | tee /tmp/test_output.xml
