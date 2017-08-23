@@ -1,10 +1,4 @@
-pipeline {
-  agent none
-  stages {
-    stage('Build') {
-      steps {
-        cheribuildProject 'nginx', '--install-prefix /tmp/benchdir/nginx-$CPU --with-libstatcounters --nginx/no-debug-info'
-      }
-    }
-  }
+stage("Build") {
+    cheribuildProject(name:'nginx', extraArgs: '--with-libstatcounters --nginx/no-debug-info'
+                      testScript: 'cd /opt/$CPU/ && sh -xe ./nginx-benchmark.sh')
 }
