@@ -9,6 +9,7 @@ stage("Build") {
         git clone https://github.com/nginx/nginx-tests.git
         rm -rf nginx-tests/.git
         tar cJf nginx-tests.tar.xz nginx-tests
+        rm -rf nginx-tests
         # TODO: use perl from pkg.FreeBSD.org? (for some reason can't extract it properly though)
         wget https://transfer.sh/AmikH/perl-mips-junit.tar.xz
         ls -la
