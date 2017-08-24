@@ -6,8 +6,8 @@ properties([
 stage("Build") {
     def before = {
         sh '''
-            git clone https://github.com/nginx/nginx-tests.git || git -C nginx-tests pull --rebase
             apt-get install -y --no-install-recommends git wget
+            git clone https://github.com/nginx/nginx-tests.git || git -C nginx-tests pull --rebase
             rm -rf opt && mkdir -p opt/nginx-tests
             cp -aR nginx-tests/* opt/nginx-tests
             tar cJf nginx-tests.tar.xz opt
