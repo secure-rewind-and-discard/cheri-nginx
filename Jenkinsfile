@@ -12,7 +12,8 @@ stage("Build") {
             cp -aR nginx-tests/* opt/nginx-tests
             tar cJf nginx-tests.tar.xz opt
             # TODO: use perl from pkg.FreeBSD.org? (for some reason can't extract it properly though)
-            wget https://transfer.sh/AmikH/perl-mips-junit.tar.xz
+            # wget https://transfer.sh/AmikH/perl-mips-junit.tar.xz
+            wget http://www.cl.cam.ac.uk/~alr48/files/perl-mips-junit.tar.xz
             ls -la
         '''
     }
