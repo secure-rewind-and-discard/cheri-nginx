@@ -5,5 +5,7 @@ which perl
 which prove
 NGINX_DIR=$(realpath .)
 export TEST_NGINX_BINARY=${NGINX_DIR}/sbin/nginx
+export TEST_NGINX_VERBOSE=1
+export TEST_NGINX_CATLOG=1
 # http://blogs.perl.org/users/confuseacat/2011/09/perl-testing-with-jenkinshudson-avoiding-some-pitfalls.html
-prove --formatter=TAP::Formatter::JUnit /opt/nginx-tests | tee /tmp/test_output.xml
+prove -v --formatter=TAP::Formatter::JUnit /opt/nginx-tests | tee /tmp/test_output.xml
