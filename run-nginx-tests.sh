@@ -6,4 +6,4 @@ which prove
 NGINX_DIR=$(realpath .)
 export TEST_NGINX_BINARY=${NGINX_DIR}/sbin/nginx
 # http://blogs.perl.org/users/confuseacat/2011/09/perl-testing-with-jenkinshudson-avoiding-some-pitfalls.html
-prove --formatter=TAP::Formatter::JUnit . | tee /tmp/test_output.xml
+prove --formatter=TAP::Formatter::JUnit /opt/nginx-tests | tee /tmp/test_output.xml
