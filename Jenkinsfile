@@ -19,6 +19,6 @@ stage("Build") {
     cheribuildProject(name:'nginx', extraArgs: '--with-libstatcounters --nginx/no-debug-info',
                       targets: ['mips'],  // only run one for now
                       testScript: 'cd /opt/$CPU/ && sh -xe ./run-nginx-tests.sh',
-                      beforeTests: before, testExtraArgs: '--test-archive nginx-tests.tar.xz --test-archive perl-mips-junit.tar.xz' 
-                      minimalTestImage: true) // TODO: once we need perl this will no longer be true
+                      beforeTests: before, testExtraArgs: '--test-archive nginx-tests.tar.xz --test-archive perl-mips-junit.tar.xz', 
+                      minimalTestImage: true,) // TODO: once we need perl this will no longer be true
 }
