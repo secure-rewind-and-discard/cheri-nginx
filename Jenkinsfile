@@ -5,12 +5,12 @@ properties([
 
 stage("Build") {
     def before = {
-        dir('nginx-tests') {
-            git 'https://github.com/nginx/nginx-tests.git'
-        }
         sh '''
+            git clone https://github.com/nginx/nginx-tests.git || git -C nginx-tests pull --rebase
             apt-get install -y --no-install-recommends git wget
-            tar cJf nginx-tests.tar.xz  --exclude nginx-tests/.git nginx-tests
+            rm -rf tmp && mkdir -p tmp/nginx-tests
+            cp -aR nginx-tests/* tmp/nginx-tests
+            tar cJf nginx-tests.tar.xz tmp
             # TODO: use perl from pkg.FreeBSD.org? (for some reason can't extract it properly though)
             wget https://transfer.sh/AmikH/perl-mips-junit.tar.xz
             ls -la
