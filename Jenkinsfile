@@ -1,6 +1,6 @@
 properties([
     disableConcurrentBuilds(),
-    pipelineTriggers([]),
+    pipelineTriggers([githubPush()]),
 ])
 
 stage("Build") {
