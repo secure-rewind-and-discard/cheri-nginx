@@ -8,9 +8,9 @@ stage("Build") {
         sh '''
             git clone https://github.com/nginx/nginx-tests.git || git -C nginx-tests pull --rebase
             apt-get install -y --no-install-recommends git wget
-            rm -rf tmp && mkdir -p tmp/nginx-tests
-            cp -aR nginx-tests/* tmp/nginx-tests
-            tar cJf nginx-tests.tar.xz tmp
+            rm -rf opt && mkdir -p opt/nginx-tests
+            cp -aR nginx-tests/* opt/nginx-tests
+            tar cJf nginx-tests.tar.xz opt
             # TODO: use perl from pkg.FreeBSD.org? (for some reason can't extract it properly though)
             wget https://transfer.sh/AmikH/perl-mips-junit.tar.xz
             ls -la
