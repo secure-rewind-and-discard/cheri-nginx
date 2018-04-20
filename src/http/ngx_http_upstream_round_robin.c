@@ -282,7 +282,8 @@ ngx_http_upstream_init_round_robin_peer(ngx_http_request_t *r,
     }
 
     if (n <= 8 * sizeof(uintptr_t)) {
-        rrp->tried = &rrp->data;
+        // FIXME: this is probably wrong
+        rrp->tried = (ptraddr_t*)&rrp->data;
         rrp->data = 0;
 
     } else {
@@ -402,7 +403,8 @@ ngx_http_upstream_create_round_robin_peer(ngx_http_request_t *r,
     rrp->config = 0;
 
     if (rrp->peers->number <= 8 * sizeof(uintptr_t)) {
-        rrp->tried = &rrp->data;
+        // FIXME: this is probably wrong
+        rrp->tried = (ptraddr_t*)&rrp->data;
         rrp->data = 0;
 
     } else {
@@ -522,7 +524,7 @@ static ngx_http_upstream_rr_peer_t *
 ngx_http_upstream_get_peer(ngx_http_upstream_rr_peer_data_t *rrp)
 {
     time_t                        now;
-    uintptr_t                     m;
+    ptraddr_t                     m;
     ngx_int_t                     total;
     ngx_uint_t                    i, n, p;
     ngx_http_upstream_rr_peer_t  *peer, *best;
@@ -541,7 +543,7 @@ ngx_http_upstream_get_peer(ngx_http_upstream_rr_peer_data_t *rrp)
          peer = peer->next, i++)
     {
         n = i / (8 * sizeof(uintptr_t));
-        m = (uintptr_t) 1 << i % (8 * sizeof(uintptr_t));
+        m = (ptraddr_t) 1 << i % (8 * sizeof(uintptr_t));
 
         if (rrp->tried[n] & m) {
             continue;
@@ -582,7 +584,7 @@ ngx_http_upstream_get_peer(ngx_http_upstream_rr_peer_data_t *rrp)
     rrp->current = best;
 
     n = p / (8 * sizeof(uintptr_t));
-    m = (uintptr_t) 1 << p % (8 * sizeof(uintptr_t));
+    m = (ptraddr_t) 1 << p % (8 * sizeof(uintptr_t));
 
     rrp->tried[n] |= m;
 
