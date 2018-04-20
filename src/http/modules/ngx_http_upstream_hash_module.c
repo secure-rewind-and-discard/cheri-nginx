@@ -169,7 +169,7 @@ ngx_http_upstream_get_hash_peer(ngx_peer_connection_t *pc, void *data)
     size_t                        size;
     uint32_t                      hash;
     ngx_int_t                     w;
-    uintptr_t                     m;
+    vaddr_t                       m;
     ngx_uint_t                    n, p;
     ngx_http_upstream_rr_peer_t  *peer;
 
@@ -222,7 +222,7 @@ ngx_http_upstream_get_hash_peer(ngx_peer_connection_t *pc, void *data)
         }
 
         n = p / (8 * sizeof(uintptr_t));
-        m = (uintptr_t) 1 << p % (8 * sizeof(uintptr_t));
+        m = (vaddr_t) 1 << p % (8 * sizeof(uintptr_t));
 
         if (hp->rrp.tried[n] & m) {
             goto next;
@@ -489,7 +489,7 @@ ngx_http_upstream_get_chash_peer(ngx_peer_connection_t *pc, void *data)
     ngx_http_upstream_hash_peer_data_t  *hp = data;
 
     time_t                              now;
-    intptr_t                            m;
+    vaddr_t                             m;
     ngx_str_t                          *server;
     ngx_int_t                           total;
     ngx_uint_t                          i, n, best_i;
@@ -528,7 +528,7 @@ ngx_http_upstream_get_chash_peer(ngx_peer_connection_t *pc, void *data)
              peer = peer->next, i++)
         {
             n = i / (8 * sizeof(uintptr_t));
-            m = (uintptr_t) 1 << i % (8 * sizeof(uintptr_t));
+            m = (vaddr_t) 1 << i % (8 * sizeof(uintptr_t));
 
             if (hp->rrp.tried[n] & m) {
                 continue;
@@ -601,7 +601,7 @@ found:
     ngx_http_upstream_rr_peers_unlock(hp->rrp.peers);
 
     n = best_i / (8 * sizeof(uintptr_t));
-    m = (uintptr_t) 1 << best_i % (8 * sizeof(uintptr_t));
+    m = (vaddr_t) 1 << best_i % (8 * sizeof(uintptr_t));
 
     hp->rrp.tried[n] |= m;
 

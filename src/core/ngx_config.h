@@ -11,7 +11,6 @@
 
 #include <ngx_auto_headers.h>
 
-
 #if defined __DragonFly__ && !defined __FreeBSD__
 #define __FreeBSD__        4
 #define __FreeBSD_version  480101
@@ -165,6 +164,13 @@ ngx_align_ptr(void* p, size_t align) {
 #define NGX_COMPAT_BEGIN(slots)
 #define NGX_COMPAT_END
 
+#endif
+
+/* XXXAR: For the low pointer bits macros */
+#if __has_include(<cheri/cheric.h>)
+#include <cheri/cheric.h>
+#else
+#include <cheri.h>
 #endif
 
 

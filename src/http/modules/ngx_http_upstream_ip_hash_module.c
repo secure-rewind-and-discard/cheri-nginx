@@ -152,7 +152,7 @@ ngx_http_upstream_get_ip_hash_peer(ngx_peer_connection_t *pc, void *data)
 
     time_t                        now;
     ngx_int_t                     w;
-    uintptr_t                     m;
+    vaddr_t                       m;
     ngx_uint_t                    i, n, p, hash;
     ngx_http_upstream_rr_peer_t  *peer;
 
@@ -192,7 +192,7 @@ ngx_http_upstream_get_ip_hash_peer(ngx_peer_connection_t *pc, void *data)
         }
 
         n = p / (8 * sizeof(uintptr_t));
-        m = (uintptr_t) 1 << p % (8 * sizeof(uintptr_t));
+        m = (vaddr_t) 1 << p % (8 * sizeof(uintptr_t));
 
         if (iphp->rrp.tried[n] & m) {
             goto next;

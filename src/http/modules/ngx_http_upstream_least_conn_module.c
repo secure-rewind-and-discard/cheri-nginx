@@ -102,7 +102,7 @@ ngx_http_upstream_get_least_conn_peer(ngx_peer_connection_t *pc, void *data)
     ngx_http_upstream_rr_peer_data_t  *rrp = data;
 
     time_t                         now;
-    uintptr_t                      m;
+    vaddr_t                        m;
     ngx_int_t                      rc, total;
     ngx_uint_t                     i, n, p, many;
     ngx_http_upstream_rr_peer_t   *peer, *best;
@@ -137,7 +137,7 @@ ngx_http_upstream_get_least_conn_peer(ngx_peer_connection_t *pc, void *data)
          peer = peer->next, i++)
     {
         n = i / (8 * sizeof(uintptr_t));
-        m = (uintptr_t) 1 << i % (8 * sizeof(uintptr_t));
+        m = (vaddr_t) 1 << i % (8 * sizeof(uintptr_t));
 
         if (rrp->tried[n] & m) {
             continue;
@@ -192,7 +192,7 @@ ngx_http_upstream_get_least_conn_peer(ngx_peer_connection_t *pc, void *data)
              peer = peer->next, i++)
         {
             n = i / (8 * sizeof(uintptr_t));
-            m = (uintptr_t) 1 << i % (8 * sizeof(uintptr_t));
+            m = (vaddr_t) 1 << i % (8 * sizeof(uintptr_t));
 
             if (rrp->tried[n] & m) {
                 continue;
@@ -246,7 +246,7 @@ ngx_http_upstream_get_least_conn_peer(ngx_peer_connection_t *pc, void *data)
     rrp->current = best;
 
     n = p / (8 * sizeof(uintptr_t));
-    m = (uintptr_t) 1 << p % (8 * sizeof(uintptr_t));
+    m = (vaddr_t) 1 << p % (8 * sizeof(uintptr_t));
 
     rrp->tried[n] |= m;
 
