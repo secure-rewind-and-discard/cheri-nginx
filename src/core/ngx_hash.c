@@ -8,7 +8,6 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 
-
 void *
 ngx_hash_find(ngx_hash_t *hash, ngx_uint_t key, u_char *name, size_t len)
 {
@@ -97,23 +96,21 @@ ngx_hash_find_wc_head(ngx_hash_wildcard_t *hwc, u_char *name, size_t len)
          *     11 - value is pointer to wildcard hash allowing
          *          "*.example.com" only.
          */
-
-        if ((uintptr_t) value & 2) {
+        if (cheri_get_low_ptr_bits((uintptr_t) value, 2)) {
 
             if (n == 0) {
 
                 /* "example.com" */
 
-                if ((uintptr_t) value & 1) {
+                if (cheri_get_low_ptr_bits((uintptr_t) value, 1)) {
                     return NULL;
                 }
 
-                hwc = (ngx_hash_wildcard_t *)
-                                          ((uintptr_t) value & (uintptr_t) ~3);
+                hwc = (ngx_hash_wildcard_t *)cheri_clear_low_ptr_bits((uintptr_t)value, 3);
                 return hwc->value;
             }
 
-            hwc = (ngx_hash_wildcard_t *) ((uintptr_t) value & (uintptr_t) ~3);
+            hwc = (ngx_hash_wildcard_t *) cheri_clear_low_ptr_bits((uintptr_t)value, 3);
 
             value = ngx_hash_find_wc_head(hwc, name, n - 1);
 
@@ -124,7 +121,7 @@ ngx_hash_find_wc_head(ngx_hash_wildcard_t *hwc, u_char *name, size_t len)
             return hwc->value;
         }
 
-        if ((uintptr_t) value & 1) {
+        if (cheri_get_low_ptr_bits((uintptr_t) value, 1)) {
 
             if (n == 0) {
 
@@ -133,7 +130,7 @@ ngx_hash_find_wc_head(ngx_hash_wildcard_t *hwc, u_char *name, size_t len)
                 return NULL;
             }
 
-            return (void *) ((uintptr_t) value & (uintptr_t) ~3);
+            return (void *) cheri_clear_low_ptr_bits((uintptr_t)value, 3);
         }
 
         return value;
@@ -185,11 +182,11 @@ ngx_hash_find_wc_tail(ngx_hash_wildcard_t *hwc, u_char *name, size_t len)
          *     11 - value is pointer to wildcard hash allowing "example.*".
          */
 
-        if ((uintptr_t) value & 2) {
+        if (cheri_get_low_ptr_bits((uintptr_t) value, 2)) {
 
             i++;
 
-            hwc = (ngx_hash_wildcard_t *) ((uintptr_t) value & (uintptr_t) ~3);
+            hwc = (ngx_hash_wildcard_t *) cheri_clear_low_ptr_bits((uintptr_t)value, 3);
 
             value = ngx_hash_find_wc_tail(hwc, &name[i], len - i);
 
