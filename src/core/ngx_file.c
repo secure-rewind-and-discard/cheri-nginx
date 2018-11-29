@@ -618,7 +618,7 @@ ngx_create_paths(ngx_cycle_t *cycle, ngx_uid_t user)
             continue;
         }
 
-#if !(NGX_WIN32)
+#if !(NGX_WIN32 || NGX_CHERIOS)
         {
         ngx_file_info_t   fi;
 
@@ -631,7 +631,7 @@ ngx_create_paths(ngx_cycle_t *cycle, ngx_uid_t user)
         }
 
         if (fi.st_uid != user) {
-            if (chown((const char *) path[i]->name.data, user, -1) == -1) {
+            if (chown((const char *) path[i]->name.data, user, NO_GROUP_ID) == -1) {
                 ngx_log_error(NGX_LOG_EMERG, cycle->log, ngx_errno,
                               "chown(\"%s\", %d) failed",
                               path[i]->name.data, user);
@@ -665,7 +665,7 @@ ngx_ext_rename_file(ngx_str_t *src, ngx_str_t *to, ngx_ext_rename_file_t *ext)
     ngx_err_t         err;
     ngx_copy_file_t   cf;
 
-#if !(NGX_WIN32)
+#if !(NGX_WIN32) && !(NGX_CHERIOS)
 
     if (ext->access) {
         if (ngx_change_file_access(src->data, ext->access) == NGX_FILE_ERROR) {

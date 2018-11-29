@@ -324,7 +324,7 @@ main(int argc, char *const *argv)
         ngx_process = NGX_PROCESS_MASTER;
     }
 
-#if !(NGX_WIN32)
+#if !(NGX_WIN32 || NGX_CHERIOS)
 
     if (ngx_init_signals(cycle->log) != NGX_OK) {
         return 1;
@@ -477,7 +477,8 @@ ngx_add_inherited_sockets(ngx_cycle_t *cycle)
 
             ngx_memzero(ls, sizeof(ngx_listening_t));
 
-            ls->fd = (ngx_socket_t) s;
+            // This is fundamentally broken because our FDs are not ints and so cannot be parsed
+            ls->fd = (ngx_socket_t) NGX_INVALID_FILE;
         }
     }
 
@@ -855,7 +856,7 @@ ngx_get_options(int argc, char *const *argv)
 static ngx_int_t
 ngx_save_argv(ngx_cycle_t *cycle, int argc, char *const *argv)
 {
-#if (NGX_FREEBSD)
+#if (NGX_FREEBSD || NGX_CHERIOS)
 
     ngx_os_argv = (char **) argv;
     ngx_argc = argc;
@@ -1081,7 +1082,7 @@ ngx_core_module_init_conf(ngx_cycle_t *cycle, void *conf)
                NGX_OLDPID_EXT, sizeof(NGX_OLDPID_EXT));
 
 
-#if !(NGX_WIN32)
+#if !(NGX_WIN32 || NGX_CHERIOS)
 
     if (ccf->user == (uid_t) NGX_CONF_UNSET_UINT && geteuid() == 0) {
         struct group   *grp;
@@ -1165,7 +1166,7 @@ ngx_core_module_init_conf(ngx_cycle_t *cycle, void *conf)
 static char *
 ngx_set_user(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
-#if (NGX_WIN32)
+#if (NGX_WIN32 || NGX_CHERIOS)
 
     ngx_conf_log_error(NGX_LOG_WARN, cf, 0,
                        "\"user\" is not supported, ignored");

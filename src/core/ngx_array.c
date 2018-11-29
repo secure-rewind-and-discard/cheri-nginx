@@ -7,6 +7,7 @@
 
 #include <ngx_config.h>
 #include <ngx_core.h>
+#include "ngx_array.h"
 
 
 ngx_array_t *
@@ -59,8 +60,8 @@ ngx_array_push(ngx_array_t *a)
 
         p = a->pool;
 
-        if ((u_char *) a->elts + size == p->d.last
-            && p->d.last + a->size <= p->d.end)
+        if ((size_t) a->elts + size == (size_t)p->d.last
+            && (size_t)p->d.last + a->size <= (size_t)p->d.end)
         {
             /*
              * the array allocation is the last in the pool
@@ -72,7 +73,6 @@ ngx_array_push(ngx_array_t *a)
 
         } else {
             /* allocate a new array */
-
             new = ngx_palloc(p, 2 * size);
             if (new == NULL) {
                 return NULL;

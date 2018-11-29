@@ -1392,7 +1392,7 @@ ngx_http_upstream_check_broken_connection(ngx_http_request_t *r,
 
 #endif
 
-    n = recv(c->fd, buf, 1, MSG_PEEK);
+    n = ngxrecv(c->fd, buf, 1, MSG_PEEK);
 
     err = ngx_socket_errno;
 

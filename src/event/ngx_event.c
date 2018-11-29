@@ -443,7 +443,7 @@ ngx_event_module_init(ngx_cycle_t *cycle)
 
     ngx_timer_resolution = ccf->timer_resolution;
 
-#if !(NGX_WIN32)
+#if !(NGX_WIN32 || NGX_CHERIOS)
     {
     ngx_int_t      limit;
     struct rlimit  rlmt;
@@ -532,7 +532,7 @@ ngx_event_module_init(ngx_cycle_t *cycle)
 
     tp = ngx_timeofday();
 
-    ngx_random_number = (tp->msec << 16) + ngx_pid;
+    ngx_random_number = (tp->msec << 16) + (ngx_atomic_int_t)ngx_pid;
 
 #if (NGX_STAT_STUB)
 
@@ -550,7 +550,7 @@ ngx_event_module_init(ngx_cycle_t *cycle)
 }
 
 
-#if !(NGX_WIN32)
+#if !(NGX_WIN32 || NGX_CHERIOS)
 
 static void
 ngx_timer_signal_handler(int signo)
@@ -625,7 +625,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
         break;
     }
 
-#if !(NGX_WIN32)
+#if !(NGX_WIN32 || NGX_CHERIOS)
 
     if (ngx_timer_resolution && !(ngx_event_flags & NGX_USE_TIMER_EVENT)) {
         struct sigaction  sa;
@@ -679,6 +679,16 @@ ngx_event_process_init(ngx_cycle_t *cycle)
         ngx_timer_resolution = 0;
     }
 
+#endif
+
+#if (NGX_CHERIOS)
+    cycle->files_n = (ngx_uint_t) 64; // TODO
+
+    cycle->files = ngx_calloc(sizeof(ngx_connection_t *) * cycle->files_n,
+                              cycle->log);
+    if (cycle->files == NULL) {
+        return NGX_ERROR;
+    }
 #endif
 
     cycle->connections =

@@ -1035,7 +1035,9 @@ ngx_get_connection(ngx_socket_t s, ngx_log_t *log)
 
     /* disable warning: Win32 SOCKET is u_int while UNIX socket is int */
 
-    if (ngx_cycle->files && (ngx_uint_t) s >= ngx_cycle->files_n) {
+    ngx_uint_t sock_as_int = ngx_sock_to_int(s);
+
+    if (ngx_cycle->files && sock_as_int >= ngx_cycle->files_n) {
         ngx_log_error(NGX_LOG_ALERT, log, 0,
                       "the new socket has number %d, "
                       "but only %ui files are available",
@@ -1061,8 +1063,8 @@ ngx_get_connection(ngx_socket_t s, ngx_log_t *log)
     ngx_cycle->free_connections = c->data;
     ngx_cycle->free_connection_n--;
 
-    if (ngx_cycle->files && ngx_cycle->files[s] == NULL) {
-        ngx_cycle->files[s] = c;
+    if (ngx_cycle->files && ngx_cycle->files[sock_as_int] == NULL) {
+        ngx_cycle->files[sock_as_int] = c;
     }
 
     rev = c->read;
@@ -1102,8 +1104,8 @@ ngx_free_connection(ngx_connection_t *c)
     ngx_cycle->free_connections = c;
     ngx_cycle->free_connection_n++;
 
-    if (ngx_cycle->files && ngx_cycle->files[c->fd] == c) {
-        ngx_cycle->files[c->fd] = NULL;
+    if (ngx_cycle->files && ngx_cycle->files[ngx_sock_to_int(c->fd)] == c) {
+        ngx_cycle->files[ngx_sock_to_int(c->fd)] = NULL;
     }
 }
 

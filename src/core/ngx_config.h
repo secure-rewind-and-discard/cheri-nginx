@@ -36,28 +36,20 @@
 #elif (NGX_WIN32)
 #include <ngx_win32_config.h>
 
+#elif (NGX_CHERIOS)
+#include <ngx_cherios_config.h>
 
 #else /* POSIX */
 #include <ngx_posix_config.h>
 
 #endif
 
-/*
- * CHERI is big endian.
- */
-#undef NGX_HAVE_LITTLE_ENDIAN
-
-/*
- * sendfile(2) appears to be broken.
- */
-#undef NGX_HAVE_SENDFILE
-
 #ifndef NGX_HAVE_SO_SNDLOWAT
 #define NGX_HAVE_SO_SNDLOWAT     1
 #endif
 
 
-#if !(NGX_WIN32)
+#if !(NGX_WIN32 || NGX_CHERIOS)
 
 #define ngx_signal_helper(n)     SIG##n
 #define ngx_signal_value(n)      ngx_signal_helper(n)
@@ -82,6 +74,13 @@
 #define ngx_libc_cdecl
 
 #endif
+
+#if (NGX_CHERIOS)
+#define ngx_signal_value(X) X
+#define ngx_cdecl
+#define ngx_libc_cdecl
+#define ngx_random               random
+#endif // NGX_CHERIOS
 
 typedef int64_t		ngx_int_t;
 typedef uint64_t	ngx_uint_t;
@@ -120,10 +119,7 @@ typedef uintptr_t	ngx_vaddr_t;
 #endif
 static inline u_char*
 ngx_align_ptr(void* p, size_t align) {
-    if (((ngx_vaddr_t)p & (align - 1)) == 0)
-        return (u_char*)p;
-    /* XXXAR: TODO: assert that align is a power of two */
-    return ((u_char *)p + (align - ((ngx_vaddr_t)p & (align - 1))));
+    return (u_char*)p + ((align - (ngx_vaddr_t)p) & (align - 1));
 }
 
 
@@ -165,13 +161,5 @@ ngx_align_ptr(void* p, size_t align) {
 #define NGX_COMPAT_END
 
 #endif
-
-/* XXXAR: For the low pointer bits macros */
-#if __has_include(<cheri/cheric.h>)
-#include <cheri/cheric.h>
-#else
-#include <cheri.h>
-#endif
-
 
 #endif /* _NGX_CONFIG_H_INCLUDED_ */

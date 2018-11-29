@@ -2985,7 +2985,7 @@ ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
         sin = &lsopt.sockaddr.sockaddr_in;
 
         sin->sin_family = AF_INET;
-#if (NGX_WIN32)
+#if (NGX_WIN32 || NGX_CHERIOS)
         sin->sin_port = htons(80);
 #else
         sin->sin_port = htons((getuid() == 0) ? 80 : 8000);

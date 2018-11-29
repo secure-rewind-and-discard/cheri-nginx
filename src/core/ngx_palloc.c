@@ -7,6 +7,7 @@
 
 #include <ngx_config.h>
 #include <ngx_core.h>
+#include "ngx_palloc.h"
 
 
 static ngx_inline void *ngx_palloc_small(ngx_pool_t *pool, size_t size,
@@ -159,15 +160,10 @@ ngx_palloc_small(ngx_pool_t *pool, size_t size, ngx_uint_t align)
         m = p->d.last;
 
         if (align) {
-            /*
-             * XXXAR: if we align by an additional 32 bytes here we will crash
-             * This all seems quite fragile and we're probably better off using
-             * the system malloc...
-             */
             m = ngx_align_ptr(m, NGX_ALIGNMENT);
         }
 
-        if ((size_t) (p->d.end - m) >= size) {
+        if ((ssize_t)(p->d.end - m) >= (ssize_t)size) {
             p->d.last = m + size;
 
             return m;

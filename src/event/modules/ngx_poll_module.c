@@ -9,6 +9,9 @@
 #include <ngx_core.h>
 #include <ngx_event.h>
 
+#define pollfd poll_sock
+#define poll(fds, nfds, timeout) socket_poll((poll_sock_t*)fds, nfds, timeout < 0 ? (int)timeout : (int)MS_TO_CLOCK(timeout), &poll_msg_event)
+//#define poll(fds, nfds) poll(fds, nfds, -1)
 
 static ngx_int_t ngx_poll_init(ngx_cycle_t *cycle, ngx_msec_t timer);
 static void ngx_poll_done(ngx_cycle_t *cycle);
@@ -61,8 +64,6 @@ ngx_module_t  ngx_poll_module = {
     NULL,                                  /* exit master */
     NGX_MODULE_V1_PADDING
 };
-
-
 
 static ngx_int_t
 ngx_poll_init(ngx_cycle_t *cycle, ngx_msec_t timer)
@@ -205,7 +206,7 @@ ngx_poll_del_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
 
             event_list[ev->index] = event_list[nevents];
 
-            c = ngx_cycle->files[event_list[nevents].fd];
+            c = ngx_cycle->files[ngx_sock_to_int(event_list[nevents].fd)];
 
             if (c->fd == -1) {
                 ngx_log_error(NGX_LOG_ALERT, ev->log, 0,
@@ -259,7 +260,14 @@ ngx_poll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
 
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, cycle->log, 0, "poll timer: %M", timer);
 
-    ready = poll(event_list, (u_int) nevents, (int) timer);
+    enum poll_events poll_msg_event;
+
+    ready = poll(event_list, (u_int) nevents, timer);
+
+    if(poll_msg_event) {
+        ready--;
+        ngx_log_debug0(NGX_LOG_DEBUG_EVENT, cycle->log, 0, "poll timer: msg event");
+    } // We count message as an event
 
     err = (ready == -1) ? ngx_errno : 0;
 
@@ -326,7 +334,7 @@ ngx_poll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
                           event_list[i].fd, event_list[i].events, revents);
         }
 
-        if (event_list[i].fd == -1) {
+        if (event_list[i].fd == NGX_NO_POLL) {
             /*
              * the disabled event, a workaround for our possible bug,
              * see the comment below
@@ -334,9 +342,9 @@ ngx_poll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
             continue;
         }
 
-        c = ngx_cycle->files[event_list[i].fd];
+        c = ngx_cycle->files[ngx_sock_to_int(event_list[i].fd)];
 
-        if (c->fd == -1) {
+        if (c->fd == NGX_NO_POLL) {
             ngx_log_error(NGX_LOG_ALERT, cycle->log, 0, "unexpected event");
 
             /*
@@ -347,11 +355,12 @@ ngx_poll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
             if (i == nevents - 1) {
                 nevents--;
             } else {
-                event_list[i].fd = -1;
+                event_list[i].fd = NGX_NO_POLL;
             }
 
             continue;
         }
+
 
         if (revents & (POLLERR|POLLHUP|POLLNVAL)) {
 

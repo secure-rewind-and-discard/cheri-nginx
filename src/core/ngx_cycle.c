@@ -285,6 +285,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
                        cycle->conf_file.data);
     }
 
+
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
             continue;
@@ -338,7 +339,6 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
         }
     }
 
-
     if (ngx_test_lockfile(cycle->lock_file.data, log) != NGX_OK) {
         goto failed;
     }
@@ -354,7 +354,6 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
     }
 
     /* open the new files */
-
     part = &cycle->open_files.part;
     file = part->elts;
 
@@ -389,7 +388,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
             goto failed;
         }
 
-#if !(NGX_WIN32)
+#if !(NGX_WIN32 || NGX_CHERIOS)
         if (fcntl(file[i].fd, F_SETFD, FD_CLOEXEC) == -1) {
             ngx_log_error(NGX_LOG_EMERG, log, ngx_errno,
                           "fcntl(FD_CLOEXEC) \"%s\" failed",
@@ -609,6 +608,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
         }
     }
 
+
     if (ngx_open_listening_sockets(cycle) != NGX_OK) {
         goto failed;
     }
@@ -682,7 +682,6 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
     }
 
 old_shm_zone_done:
-
 
     /* close the unnecessary listening sockets */
 
@@ -1034,7 +1033,10 @@ ngx_signal_process(ngx_cycle_t *cycle, char *sig)
 
     while (n-- && (buf[n] == CR || buf[n] == LF)) { /* void */ }
 
+    /* FIXME: Cant do this, A process is not an int
     pid = ngx_atoi(buf, ++n);
+    */
+    pid = (ngx_pid_t)NGX_ERROR;
 
     if (pid == (ngx_pid_t) NGX_ERROR) {
         ngx_log_error(NGX_LOG_ERR, cycle->log, 0,
@@ -1122,7 +1124,7 @@ ngx_reopen_files(ngx_cycle_t *cycle, ngx_uid_t user)
             continue;
         }
 
-#if !(NGX_WIN32)
+#if !(NGX_WIN32 || NGX_CHERIOS)
         if (user != (ngx_uid_t) NGX_CONF_UNSET_UINT) {
             ngx_file_info_t  fi;
 
@@ -1143,7 +1145,7 @@ ngx_reopen_files(ngx_cycle_t *cycle, ngx_uid_t user)
             }
 
             if (fi.st_uid != user) {
-                if (chown((const char *) file[i].name.data, user, -1) == -1) {
+                if (chown((const char *) file[i].name.data, user, NO_GROUP_ID) == -1) {
                     ngx_log_error(NGX_LOG_EMERG, cycle->log, ngx_errno,
                                   "chown(\"%s\", %d) failed",
                                   file[i].name.data, user);

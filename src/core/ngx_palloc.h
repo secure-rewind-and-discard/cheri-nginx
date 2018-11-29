@@ -11,7 +11,7 @@
 
 #include <ngx_config.h>
 #include <ngx_core.h>
-
+#include "mman.h"
 
 /*
  * NGX_MAX_ALLOC_FROM_POOL should be (ngx_pagesize - 1), i.e. 4095 on x86.
@@ -19,9 +19,9 @@
  */
 #define NGX_MAX_ALLOC_FROM_POOL  (ngx_pagesize - 1)
 
-#define NGX_DEFAULT_POOL_SIZE    (16 * 1024)
+#define NGX_DEFAULT_POOL_SIZE    (16 * 1024 - MEM_REQUEST_FAST_OFFSET)
 
-#define NGX_POOL_ALIGNMENT       32
+#define NGX_POOL_ALIGNMENT       CAP_SIZE
 #define NGX_MIN_POOL_SIZE                                                     \
     ngx_align((sizeof(ngx_pool_t) + 2 * sizeof(ngx_pool_large_t)),            \
               NGX_POOL_ALIGNMENT)

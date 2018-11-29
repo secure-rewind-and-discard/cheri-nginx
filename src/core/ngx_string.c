@@ -157,7 +157,7 @@ ngx_vslprintf(u_char *buf, u_char *last, const char *fmt, va_list args)
     ngx_str_t             *v;
     ngx_variable_value_t  *vv;
 
-    while (*fmt && buf < last) {
+    while (*fmt && ((size_t)buf < (size_t)(last))) {
 
         /*
          * "buf < last" means that we could copy at least one character:
@@ -359,6 +359,8 @@ ngx_vslprintf(u_char *buf, u_char *last, const char *fmt, va_list args)
                 break;
 
             case 'f':
+                va_arg(args, void *); // Not supporting floating point at present
+                /*
                 f = va_arg(args, double);
 
                 if (f < 0) {
@@ -393,7 +395,7 @@ ngx_vslprintf(u_char *buf, u_char *last, const char *fmt, va_list args)
 
                     buf = ngx_sprintf_num(buf, last, frac, '0', 0, frac_width);
                 }
-
+                */
                 fmt++;
 
                 continue;
@@ -542,9 +544,9 @@ ngx_sprintf_num(u_char *buf, u_char *last, uint64_t ui64, u_char zero,
 
     /* zero or space padding */
 
-    len = (temp + NGX_INT64_LEN) - p;
+    len = ((size_t)temp + NGX_INT64_LEN) - (size_t)p;
 
-    while (len++ < width && buf < last) {
+    while (len++ < width && (size_t)buf < (size_t)last) {
         *buf++ = zero;
     }
 
@@ -552,8 +554,8 @@ ngx_sprintf_num(u_char *buf, u_char *last, uint64_t ui64, u_char zero,
 
     len = (temp + NGX_INT64_LEN) - p;
 
-    if (buf + len > last) {
-        len = last - buf;
+    if ((size_t)buf + len > (size_t)last) {
+        len = (size_t)last - (size_t)buf;
     }
 
     return ngx_cpymem(buf, p, len);

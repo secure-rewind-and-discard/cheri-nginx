@@ -2787,7 +2787,7 @@ ngx_http_test_reading(ngx_http_request_t *r)
 
 #endif
 
-    n = recv(c->fd, buf, 1, MSG_PEEK);
+    n = ngxrecv(c->fd, buf, 1, MSG_PEEK);
 
     if (n == 0) {
         rev->eof = 1;

@@ -2036,9 +2036,9 @@ ngx_http_file_cache_loader(void *data)
     cache->sh->loading = 0;
 
     ngx_log_error(NGX_LOG_NOTICE, ngx_cycle->log, 0,
-                  "http file cache: %V %.3fM, bsize: %uz",
+                  "http file cache: %V %dB, bsize: %uz",
                   &cache->path->name,
-                  ((double) cache->sh->size * cache->bsize) / (1024 * 1024),
+                  (cache->sh->size * cache->bsize),
                   cache->bsize);
 }
 
