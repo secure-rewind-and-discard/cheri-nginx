@@ -34,6 +34,7 @@
 #include <ff.h>
 #include <ngx_string.h>
 #include <sockets.h>
+#include <ngx_event.h>
 #include "ngx_files.h"
 
 static int map_fs_errors(FRESULT fresult) {
@@ -187,11 +188,48 @@ ngx_write_file(ngx_file_t *file, u_char *buf, size_t size, off_t offset)
     }
 }
 
-/*
-ssize_t ngx_file_aio_read(ngx_file_t *file, u_char *buf, size_t size,
-                          off_t offset, ngx_pool_t *pool) {
+int aio_read(struct aiocb *aiocbp) {
+
+    assert(aiocbp->aio_fildes->con_type & CONNECT_PULL_READ);
+
+    // TODO seek to offset
+    uni_dir_socket_requester* req = aiocbp->aio_fildes->read.pull_reader;
+
+    ssize_t res = socket_internal_requester_space_wait(req,1,1,0);
+
+    if(res != 0) return (int)map_sock_errors(res);
+
+    res = socket_internal_request_ind(req,aiocbp->aio_buf,aiocbp->aio_nbytes,0);
+
+    if(res == 0) {
+        aiocbp->aio_fildes->flags |= (SOCKF_POLL_READ_MEANS_EMPTY);
+    }
+
+    return (int)map_sock_errors(res);
 }
-*/
+
+ssize_t aio_return(struct aiocb *aiocbp) {
+    uni_dir_socket_requester* req = aiocbp->aio_fildes->read.pull_reader;
+
+    ssize_t res = socket_internal_requester_wait_all_finish(req, 1);
+
+    if(res == 0)  {
+        res = aiocbp->aio_nbytes;
+        aiocbp->aio_fildes->flags &= ~(SOCKF_POLL_READ_MEANS_EMPTY);
+    }
+
+    return map_sock_errors(res);
+}
+
+int aio_error(const struct aiocb *aiocbp) {
+    uni_dir_socket_requester* req = aiocbp->aio_fildes->read.pull_reader;
+
+    ssize_t res = socket_internal_requester_wait_all_finish(req, 1);
+
+    if(res == E_AGAIN) return NGX_EINPROGRESS;
+
+    return (int)map_sock_errors(res);
+}
 
 ngx_err_t ngx_rename_file(const char* o, const char* n) {
     return map_fs_errors(rename(o, n));
@@ -203,7 +241,7 @@ ngx_fd_t ngx_open_file(u_char *name, u_long mode, u_long create, u_long access) 
 
     u_long nonblock = mode & NGX_FILE_NONBLOCK;
 
-    ERROR_T(FILE_t) result = open_er(name, (int)(mode & 0xFF), nonblock ? MSG_DONT_WAIT : MSG_NONE);
+    ERROR_T(FILE_t) result = open_er(name, (int)(mode & 0xFF), (nonblock ? MSG_DONT_WAIT : MSG_NONE) | SOCKF_GIVE_SOCK_N);
 
     if(IS_VALID(result)) {
         ssize_t res = 0;
@@ -329,6 +367,7 @@ int setsockopt(ngx_socket_t sockfd, int level, int optname, const void *optval, 
         default:{}
             // unrecognised level
     }
+    assert(0);
     return -1;
 }
 
@@ -452,8 +491,8 @@ ssize_t readv(FILE_t fd, const struct iovec *vector, int count) {
     for(size_t i = 0; i != count; i++) {
         ssize_t res = socket_recv(fd,vector[i].iov_base,vector[i].iov_len,MSG_NONE);
         if(res < 0) {
-            if(total == 0) total = res;
-            break;
+            if(total == 0) return res;
+            else break;
         }
         total += res;
         if(res != vector[i].iov_len) break;

@@ -375,6 +375,7 @@ extern ngx_uint_t            ngx_use_epoll_rdhup;
 
 #define NGX_READ_EVENT     POLLIN
 #define NGX_WRITE_EVENT    POLLOUT
+#define NGX_AIO_READ_EVENT 0x1000
 
 #define NGX_LEVEL_EVENT    0
 #define NGX_ONESHOT_EVENT  1

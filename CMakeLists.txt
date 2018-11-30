@@ -17,7 +17,7 @@ set(NGX_BUILD "")
 set(EVENT_SELECT "NO")
 set(EVENT_POLL "YES")
 set(USE_THREADS "NO")
-set(NGX_FILE_AIO "NO")
+set(NGX_FILE_AIO "YES")
 set(HTTP "YES")
 set(HTTP_CACHE "YES")
 set(NGX_HTTP_LOG_PATH          "logs/access.log"  CACHE STRING "")
@@ -309,7 +309,7 @@ ngx_auto_have("NGX_HAVE_REUSEPORT")
 ngx_auto_have("NGX_HAVE_DEFERRED_ACCEPT")
 ngx_auto_have("NGX_HAVE_KEEPALIVE_TUNABLE")
 ngx_auto_have("NGX_HAVE_ACCEPT4")
-ngx_auto_have("NGX_HAVE_EVENTFD")
+ngx_auto_nohave("NGX_HAVE_EVENTFD")
 ngx_auto_have("NGX_HAVE_SYS_EVENTFD_H")
 ngx_auto_have("NGX_HAVE_PREAD")
 ngx_auto_have("NGX_HAVE_PWRITEV")
@@ -326,6 +326,7 @@ ngx_auto_have("NGX_HAVE_SC_NPROCESSORS_ONLN")
 ngx_auto_have("NGX_HAVE_LEVEL1_DCACHE_LINESIZE")
 ngx_auto_have("NGX_HAVE_GETADDRINFO")
 
+
 ngx_auto_nohave("NGX_HAVE_NONALIGNED")
 ngx_auto_nohave("NGX_HAVE_O_DIRECT")
 ngx_auto_nohave("NGX_HAVE_ALIGNED_DIRECTIO")
@@ -339,8 +340,14 @@ ngx_auto_nohave("NGX_HAVE_POSIX_SEM")
 ngx_auto_nohave("NGX_HAVE_OPENAT")
 ngx_auto_nohave("NGX_IO_SENDFILE")
 ngx_auto_nohave("NGX_HAVE_AIO_SENDFILE")
-ngx_auto_nohave("NGX_HAVE_FILE_AIO")
 
+if ("${NGX_FILE_AIO}" STREQUAL "YES")
+    ngx_auto_have("NGX_HAVE_FILE_AIO")
+    set(AIO_SRCS src/os/unix/ngx_file_aio_read.c)
+else()
+    ngx_auto_nohave("NGX_HAVE_FILE_AIO")
+    set(AIO_SRCS)
+endif()
 
 ngx_auto_define("NGX_PREFIX"         "\"${NGX_PREFIX}/\"")
 ngx_auto_define("NGX_CONF_PREFIX"    "\"${NGX_CONF_PREFIX}/\"")
@@ -1166,6 +1173,7 @@ set(UNIX_SRCS
         src/os/unix/ngx_udp_send.c
         src/os/unix/ngx_udp_sendmsg_chain.c
         src/os/unix/ngx_writev_chain.c
+        ${AIO_SRCS}
 )
 
 include_directories(src/core)

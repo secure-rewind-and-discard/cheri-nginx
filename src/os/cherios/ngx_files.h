@@ -40,6 +40,23 @@ typedef FILE_t ngx_fd_t;
 
 typedef uint32_t mode_t;
 
+#if (NGX_HAVE_FILE_AIO)
+
+extern ngx_uint_t  ngx_file_aio;
+
+typedef struct aiocb {
+    /* The order of these fields is implementation-dependent */
+
+    ngx_fd_t        aio_fildes;     /* File descriptor */
+    off_t           aio_offset;     /* File offset */
+    volatile void  *aio_buf;        /* Location of buffer */
+    size_t          aio_nbytes;     /* Length of transfer */
+
+    /* Various implementation-internal fields not shown */
+} ngx_aiocb_t;
+
+#endif
+
 typedef struct stat {
 //    dev_t     st_dev;         /* ID of device containing file */
 //    ino_t     st_ino;         /* Inode number */
@@ -110,6 +127,10 @@ static inline ssize_t sendto(FILE_t sockfd, const void *buf, size_t len, int fla
 
 ssize_t sendmsg(FILE_t sockfd, const struct msghdr *msg, int flags);
 ssize_t recvmsg(FILE_t sockfd, struct msghdr *msg, int flags);
+
+int aio_read(struct aiocb *aiocbp);
+ssize_t aio_return(struct aiocb *aiocbp);
+int aio_error(const struct aiocb *aiocbp);
 
 #define ngx_close_file close
 #define ngx_close_file_n           "Close()"
@@ -226,10 +247,6 @@ typedef struct {
     ngx_log_t                   *log;
     ngx_uint_t                   test;
 } ngx_glob_t;
-
-typedef struct {
-
-} ngx_aiocb_t;
 
 ngx_err_t ngx_trylock_fd(ngx_fd_t fd);
 ngx_err_t ngx_lock_fd(ngx_fd_t fd);

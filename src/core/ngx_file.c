@@ -16,6 +16,9 @@ static ngx_atomic_t   temp_number = 0;
 ngx_atomic_t         *ngx_temp_number = &temp_number;
 ngx_atomic_int_t      ngx_random_number = 123456;
 
+#if (NGX_HAVE_FILE_AIO)
+ngx_uint_t  ngx_file_aio = 1;
+#endif
 
 ngx_int_t
 ngx_get_full_name(ngx_pool_t *pool, ngx_str_t *prefix, ngx_str_t *name)

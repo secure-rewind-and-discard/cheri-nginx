@@ -25,6 +25,8 @@ static char *ngx_poll_init_conf(ngx_cycle_t *cycle, void *conf);
 
 
 static struct pollfd  *event_list;
+static ngx_event_t* ngx_event_list[64];
+
 static ngx_uint_t      nevents;
 
 
@@ -116,10 +118,7 @@ ngx_poll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
 {
     ngx_event_t       *e;
     ngx_connection_t  *c;
-
-    c = ev->data;
-
-    ev->active = 1;
+    ngx_fd_t          fd;
 
     if (ev->index != NGX_INVALID_INDEX) {
         ngx_log_error(NGX_LOG_ALERT, ev->log, 0,
@@ -127,27 +126,45 @@ ngx_poll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
         return NGX_OK;
     }
 
-    if (event == NGX_READ_EVENT) {
-        e = c->write;
-#if (NGX_READ_EVENT != POLLIN)
-        event = POLLIN;
-#endif
+
+    if(event == NGX_AIO_READ_EVENT) {
+        ngx_event_aio_t  *aio = ev->data;
+        fd = aio->fd;
+        e = ev;
+        ngx_event_list[ngx_sock_to_int(fd)] = ev;
+        event = POLL_IN;
 
     } else {
-        e = c->read;
-#if (NGX_WRITE_EVENT != POLLOUT)
-        event = POLLOUT;
+        c = ev->data;
+
+        ev->active = 1;
+
+
+        if (event == NGX_READ_EVENT) {
+            e = c->write;
+#if (NGX_READ_EVENT != POLLIN)
+            event = POLLIN;
 #endif
+
+        } else {
+            e = c->read;
+#if (NGX_WRITE_EVENT != POLLOUT)
+            event = POLLOUT;
+#endif
+        }
+
+        fd = c->fd;
     }
 
+
+
     ngx_log_debug2(NGX_LOG_DEBUG_EVENT, ev->log, 0,
-                   "poll add event: fd:%d ev:%i", c->fd, event);
+                   "poll add event: fd:%d ev:%i", fd->sockn, event);
 
     if (e == NULL || e->index == NGX_INVALID_INDEX) {
-        event_list[nevents].fd = c->fd;
+        event_list[nevents].fd = fd;
         event_list[nevents].events = (short) event;
         event_list[nevents].revents = 0;
-
         ev->index = nevents;
         nevents++;
 
@@ -168,35 +185,46 @@ ngx_poll_del_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
 {
     ngx_event_t       *e;
     ngx_connection_t  *c;
+    ngx_fd_t          fd;
 
-    c = ev->data;
+
 
     ev->active = 0;
+
+    if(event == NGX_AIO_READ_EVENT) {
+        ngx_event_aio_t  *aio = ev->data;
+        fd = aio->fd;
+        e = ev;
+        ngx_event_list[ngx_sock_to_int(fd)] = NULL;
+    } else {
+        c = ev->data;
+        fd = c->fd;
+
+        if (event == NGX_READ_EVENT) {
+            e = c->write;
+#if (NGX_READ_EVENT != POLLIN)
+            event = POLLIN;
+#endif
+
+        } else {
+            e = c->read;
+#if (NGX_WRITE_EVENT != POLLOUT)
+            event = POLLOUT;
+#endif
+        }
+    }
 
     if (ev->index == NGX_INVALID_INDEX) {
         ngx_log_error(NGX_LOG_ALERT, ev->log, 0,
                       "poll event fd:%d ev:%i is already deleted",
-                      c->fd, event);
+                      fd->sockn, event);
         return NGX_OK;
     }
 
-    if (event == NGX_READ_EVENT) {
-        e = c->write;
-#if (NGX_READ_EVENT != POLLIN)
-        event = POLLIN;
-#endif
-
-    } else {
-        e = c->read;
-#if (NGX_WRITE_EVENT != POLLOUT)
-        event = POLLOUT;
-#endif
-    }
-
     ngx_log_debug2(NGX_LOG_DEBUG_EVENT, ev->log, 0,
-                   "poll del event: fd:%d ev:%i", c->fd, event);
+                   "poll del event: fd:%d ev:%i", fd->sockn, event);
 
-    if (e == NULL || e->index == NGX_INVALID_INDEX) {
+    if (e == NULL || e->index == NGX_INVALID_INDEX || event == NGX_AIO_READ_EVENT) {
         nevents--;
 
         if (ev->index < nevents) {
@@ -206,19 +234,24 @@ ngx_poll_del_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
 
             event_list[ev->index] = event_list[nevents];
 
-            c = ngx_cycle->files[ngx_sock_to_int(event_list[nevents].fd)];
+            ngx_fd_t copy_fd = event_list[nevents].fd;
+            size_t fid = ngx_sock_to_int(copy_fd);
 
-            if (c->fd == -1) {
-                ngx_log_error(NGX_LOG_ALERT, ev->log, 0,
-                              "unexpected last event");
+            if(!ngx_event_list[fid]) {
+                c = ngx_cycle->files[fid];
 
-            } else {
-                if (c->read->index == nevents) {
-                    c->read->index = ev->index;
-                }
+                if (c->fd == NULL) {
+                    ngx_log_error(NGX_LOG_ALERT, ev->log, 0,
+                                  "unexpected last event");
 
-                if (c->write->index == nevents) {
-                    c->write->index = ev->index;
+                } else {
+                    if (c->read->index == nevents) {
+                        c->read->index = ev->index;
+                    }
+
+                    if (c->write->index == nevents) {
+                        c->write->index = ev->index;
+                    }
                 }
             }
         }
@@ -313,7 +346,7 @@ ngx_poll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
 #if 1
         ngx_log_debug4(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
                        "poll: %ui: fd:%d ev:%04Xd rev:%04Xd",
-                       i, event_list[i].fd, event_list[i].events, revents);
+                       i, event_list[i].fd->sockn, event_list[i].events, revents);
 #else
         if (revents) {
             ngx_log_debug4(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
@@ -342,7 +375,19 @@ ngx_poll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
             continue;
         }
 
-        c = ngx_cycle->files[ngx_sock_to_int(event_list[i].fd)];
+        size_t fid = ngx_sock_to_int(event_list[i].fd);
+
+        if(ngx_event_list[fid]) {
+            ngx_event_t* e = ngx_event_list[fid];
+            e->complete = 1;
+            e->ready = 1;
+            ngx_poll_del_event(e,NGX_AIO_READ_EVENT,0);
+            ngx_post_event(e, &ngx_posted_events);
+            ready--;
+            continue;
+        }
+
+        c = ngx_cycle->files[fid];
 
         if (c->fd == NGX_NO_POLL) {
             ngx_log_error(NGX_LOG_ALERT, cycle->log, 0, "unexpected event");

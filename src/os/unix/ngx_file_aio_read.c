@@ -113,6 +113,7 @@ ngx_file_aio_read(ngx_file_t *file, u_char *buf, size_t size, off_t offset,
     aio->aiocb.aio_sigevent.sigev_value.sigval_ptr = ev;
 #endif
     ev->handler = ngx_file_aio_event_handler;
+    ev->index = NGX_INVALID_INDEX;
 
     n = aio_read(&aio->aiocb);
 
@@ -173,12 +174,17 @@ ngx_file_aio_result(ngx_file_t *file, ngx_event_aio_t *aio, ngx_event_t *ev)
                           &file->name);
         }
 
+        // Add an event for finishing this AIO read
+        if(ngx_add_event(ev,NGX_AIO_READ_EVENT,0) != NGX_OK) {
+            assert(0);
+        }
+
         return NGX_AGAIN;
     }
 
-    n = aio_return(&aio->aiocb);
+    ssize_t res = aio_return(&aio->aiocb);
 
-    if (n == -1) {
+    if (res == -1) {
         err = ngx_errno;
         aio->err = err;
         ev->ready = 1;
@@ -189,12 +195,12 @@ ngx_file_aio_result(ngx_file_t *file, ngx_event_aio_t *aio, ngx_event_t *ev)
     }
 
     aio->err = 0;
-    aio->nbytes = n;
+    aio->nbytes = (size_t)res;
     ev->ready = 1;
     ev->active = 0;
 
     ngx_log_debug2(NGX_LOG_DEBUG_CORE, file->log, 0,
-                   "aio_return: fd:%d %d", file->fd, n);
+                   "aio_return: fd:%d %d", file->fd, res);
 
     return n;
 }
