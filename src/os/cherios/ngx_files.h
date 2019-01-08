@@ -128,9 +128,11 @@ static inline ssize_t sendto(FILE_t sockfd, const void *buf, size_t len, int fla
 ssize_t sendmsg(FILE_t sockfd, const struct msghdr *msg, int flags);
 ssize_t recvmsg(FILE_t sockfd, struct msghdr *msg, int flags);
 
+#if NGX_HAVE_FILE_AIO
 int aio_read(struct aiocb *aiocbp);
 ssize_t aio_return(struct aiocb *aiocbp);
 int aio_error(const struct aiocb *aiocbp);
+#endif
 
 #define ngx_close_file close
 #define ngx_close_file_n           "Close()"

@@ -34,6 +34,10 @@ struct ngx_file_s {
     ngx_event_aio_t           *aio;
 #endif
 
+#if (NGX_CHERIOS && NGX_HAVE_SENDFILE)
+    void*                      aio_sendfile_arg;
+#endif
+
     unsigned                   valid_info:1;
     unsigned                   directio:1;
 };

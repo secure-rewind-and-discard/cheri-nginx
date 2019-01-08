@@ -17,7 +17,8 @@ set(NGX_BUILD "")
 set(EVENT_SELECT "NO")
 set(EVENT_POLL "YES")
 set(USE_THREADS "NO")
-set(NGX_FILE_AIO "YES")
+set(NGX_FILE_AIO "NO")
+set(NGX_SEND_FILE "YES")
 set(HTTP "YES")
 set(HTTP_CACHE "YES")
 set(NGX_HTTP_LOG_PATH          "logs/access.log"  CACHE STRING "")
@@ -338,8 +339,20 @@ ngx_auto_nohave("NGX_HAVE_INET6")
 ngx_auto_nohave("NGX_HAVE_PWRITE")
 ngx_auto_nohave("NGX_HAVE_POSIX_SEM")
 ngx_auto_nohave("NGX_HAVE_OPENAT")
-ngx_auto_nohave("NGX_IO_SENDFILE")
+
 ngx_auto_nohave("NGX_HAVE_AIO_SENDFILE")
+
+if("${NGX_SEND_FILE}" STREQUAL "YES")
+    ngx_auto_define("NGX_IO_SENDFILE" "1")
+    ngx_auto_have("NGX_HAVE_QUEUE_AIO")
+    ngx_auto_have("NGX_HAVE_SENDFILE")
+    ngx_auto_have("NGX_HAVE_SENDFILE64")
+    set(SENDFILE_SRCS src/os/cherios/ngx_cherios_sendfile_chain.c)
+else()
+    ngx_auto_nohave("NGX_HAVE_QUEUE_AIO")
+    ngx_auto_nohave("NGX_IO_SENDFILE")
+    set(SENDFILE_SRCS)
+endif()
 
 if ("${NGX_FILE_AIO}" STREQUAL "YES")
     ngx_auto_have("NGX_HAVE_FILE_AIO")
@@ -1174,6 +1187,7 @@ set(UNIX_SRCS
         src/os/unix/ngx_udp_sendmsg_chain.c
         src/os/unix/ngx_writev_chain.c
         ${AIO_SRCS}
+        ${SENDFILE_SRCS}
 )
 
 include_directories(src/core)

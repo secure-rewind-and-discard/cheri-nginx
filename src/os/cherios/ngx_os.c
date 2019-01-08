@@ -41,8 +41,13 @@ ngx_os_io_t ngx_os_io = {
         ngx_unix_send,              // send
         ngx_udp_unix_send,          // udp_send
         ngx_udp_unix_sendmsg_chain, // udp_sendmsg_chain
+#if (NGX_HAVE_SENDFILE)
+        ngx_cherios_sendfile_chain, // write
+        NGX_IO_SENDFILE             // flags
+#else
         ngx_writev_chain,           // writev
         0                           // flags
+#endif
 };
 
 ngx_uint_t  ngx_ncpu = SMP_CORES;

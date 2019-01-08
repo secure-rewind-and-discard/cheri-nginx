@@ -126,7 +126,7 @@ ngx_poll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
         return NGX_OK;
     }
 
-
+#if NGX_HAVE_FILE_AIO
     if(event == NGX_AIO_READ_EVENT) {
         ngx_event_aio_t  *aio = ev->data;
         fd = aio->fd;
@@ -134,7 +134,9 @@ ngx_poll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
         ngx_event_list[ngx_sock_to_int(fd)] = ev;
         event = POLL_IN;
 
-    } else {
+    } else
+#endif
+     {
         c = ev->data;
 
         ev->active = 1;
@@ -191,12 +193,15 @@ ngx_poll_del_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
 
     ev->active = 0;
 
+#if NGX_HAVE_FILE_AIO
     if(event == NGX_AIO_READ_EVENT) {
         ngx_event_aio_t  *aio = ev->data;
         fd = aio->fd;
         e = ev;
         ngx_event_list[ngx_sock_to_int(fd)] = NULL;
-    } else {
+    } else
+#endif
+    {
         c = ev->data;
         fd = c->fd;
 
@@ -294,6 +299,13 @@ ngx_poll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, cycle->log, 0, "poll timer: %M", timer);
 
     enum poll_events poll_msg_event;
+
+    for (i = 0; i < nevents; i++) {
+
+        ngx_log_debug3(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
+                       "poll: %ui: fd:%d ev:%04Xd",
+                       i, event_list[i].fd->sockn, event_list[i].events);
+    }
 
     ready = poll(event_list, (u_int) nevents, timer);
 

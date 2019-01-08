@@ -88,6 +88,10 @@ ssize_t ngx_udp_unix_send(ngx_connection_t *c, u_char *buf, size_t size);
 ngx_chain_t *ngx_udp_unix_sendmsg_chain(ngx_connection_t *c, ngx_chain_t *in,
                                         off_t limit);
 
+#if (NGX_HAVE_SENDFILE)
+ngx_chain_t * ngx_cherios_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit);
+#endif
+
 typedef struct {
     ngx_recv_pt        recv;
     ngx_recv_chain_pt  recv_chain;

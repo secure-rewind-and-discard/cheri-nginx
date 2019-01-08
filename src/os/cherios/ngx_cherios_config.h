@@ -33,7 +33,7 @@
 #include "ngx_auto_config.h"
 #include "ngx_auto_headers.h"
 
-//#define NGX_DEBUG 1
+#define NGX_DEBUG 0
 
 #include "cheric.h"
 #include "stdarg.h"

@@ -188,6 +188,7 @@ ngx_write_file(ngx_file_t *file, u_char *buf, size_t size, off_t offset)
     }
 }
 
+#if NGX_HAVE_FILE_AIO
 int aio_read(struct aiocb *aiocbp) {
 
     assert(aiocbp->aio_fildes->con_type & CONNECT_PULL_READ);
@@ -230,6 +231,7 @@ int aio_error(const struct aiocb *aiocbp) {
 
     return (int)map_sock_errors(res);
 }
+#endif
 
 ngx_err_t ngx_rename_file(const char* o, const char* n) {
     return map_fs_errors(rename(o, n));
@@ -357,6 +359,8 @@ int setsockopt(ngx_socket_t sockfd, int level, int optname, const void *optval, 
             break;
         case IPPROTO_TCP:
             switch(optname) {
+                case TCP_NODELAY:
+                    return 0; // TODO (probably quite important)
                 case TCP_KEEPALIVE:
                 case TCP_KEEPIDLE:
                 case TCP_KEEPCNT:
@@ -367,6 +371,8 @@ int setsockopt(ngx_socket_t sockfd, int level, int optname, const void *optval, 
         default:{}
             // unrecognised level
     }
+    printf("Socket level %d. optname %d.\n", level, optname);
+    sleep(MS_TO_CLOCK(100));
     assert(0);
     return -1;
 }
