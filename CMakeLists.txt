@@ -1249,7 +1249,8 @@ append_modules_c("};\n")
 append_modules_c("\n")
 
 set(ngx_all_srcs
-        ${INIT_ASM}
+#        ${INIT_ASM}
+        ${SECURE_INIT_ASM}
         ${CORE_SRCS}
         ${CHERIOS_SRCS}
         ${UNIX_SRCS}
