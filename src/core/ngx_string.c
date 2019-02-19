@@ -253,7 +253,7 @@ ngx_vslprintf(u_char *buf, u_char *last, const char *fmt, va_list args)
                 p = va_arg(args, u_char *);
 
                 if (slen == (size_t) -1) {
-                    while (*p && buf < last) {
+                    while (*p && (size_t)buf < (size_t)last) {
                         *buf++ = *p++;
                     }
 
