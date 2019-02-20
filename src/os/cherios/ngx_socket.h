@@ -70,9 +70,9 @@ size_t ngx_sock_to_int(ngx_socket_t sockfd);
 int ngx_tcp_push(ngx_socket_t s);
 #define ngx_tcp_push_n            "tcp_push()"
 
-#define ngx_shutdown_socket    shutdown
+int ngx_shutdown_socket(ngx_socket_t s, int how);
 #define ngx_shutdown_socket_n  "shutdown()"
 
-#define NGX_WRITE_SHUTDOWN 0
+#define NGX_WRITE_SHUTDOWN SHUT_WR
 
 #endif //CHERIOS_NGX_SOCKET_H

@@ -399,6 +399,10 @@ ngx_err_t ngx_blocking(ngx_socket_t s) {
     return NGX_OK;
 }
 
+int ngx_shutdown_socket(ngx_socket_t s, int how) {
+    return (int)map_sock_errors(shutdown(s, how));
+}
+
 size_t ngx_sock_to_int(ngx_socket_t sockfd) {
     assert(sockfd->flags & SOCKF_GIVE_SOCK_N);
     return sockfd->sockn;
