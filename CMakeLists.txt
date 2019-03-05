@@ -1261,6 +1261,6 @@ if ("${HTTP}" STREQUAL "YES")
     list(APPEND ngx_all_srcs ${HTTP_SRCS})
 endif()
 
-add_cherios_executable(nginx ADD_TO_FILESYSTEM LINKER_SCRIPT sandbox.ld SOURCES
+add_cherios_executable(nginx ADD_TO_FILESYSTEM TEMPORAL_A LINKER_SCRIPT sandbox.ld SOURCES
         ${ngx_all_srcs}
 )
