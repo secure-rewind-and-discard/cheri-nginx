@@ -37,24 +37,25 @@
 #define SF_DRB_SIZE 1024
 
 struct request_aio {
-    uni_dir_socket_requester* for_requester;
+    requester_t for_requester;
     ngx_event_t ev;
 
 };
 
 typedef struct proxy_pair {
-    uni_dir_socket_fulfiller ff;
+    fulfiller_t ff;
+    requester_t req;
     data_ring_buffer drb;
     char drb_data[SF_DRB_SIZE];
-    struct requester_32 req;
 } proxy_pair;
 
 void init_pair(proxy_pair* pp) {
+    // FIXME now these are not inline they will not be cleaned up automatically leading to a memory leak
     init_data_buffer(&pp->drb,pp->drb_data, SF_DRB_SIZE);
-    socket_internal_requester_init(&pp->req.r, 32, SOCK_TYPE_PUSH, &pp->drb);
-    socket_internal_fulfiller_init(&pp->ff, SOCK_TYPE_PUSH);
-    socket_internal_fulfiller_connect(&pp->ff, socket_internal_make_read_only(&pp->req.r));
-    socket_internal_requester_connect(&pp->req.r);
+    pp->req = socket_malloc_requester_32(SOCK_TYPE_PUSH, &pp->drb);
+    pp->ff = socket_malloc_fulfiller(SOCK_TYPE_PUSH);
+    socket_fulfiller_connect(pp->ff, socket_make_ref_for_fulfill(pp->req));
+    socket_requester_connect(pp->req);
 }
 
 proxy_pair* alloc_proxy(ngx_pool_t* pool) {
@@ -98,7 +99,7 @@ ngx_cherios_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
 
     assert_int_ex(c->fd->con_type & CONNECT_PUSH_WRITE, !=, 0);
 
-    uni_dir_socket_requester* req = c->fd->write.push_writer;
+    requester_t req = c->fd->write.push_writer;
 
     // Send everything up to the first file
     for ( /* void */ ; in && total < limit; in = in->next) {
@@ -107,7 +108,7 @@ ngx_cherios_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
 
         if(in->buf->in_file) {
             if(base) {
-                socket_internal_request_ind(req, base, col, 0);
+                socket_request_ind(req, base, col, 0);
                 //c->buffered |= NGX_LOWLEVEL_BUFFERED;
                 base = NULL;
             }
@@ -117,7 +118,7 @@ ngx_cherios_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
 
             assert_int_ex(in->buf->file->fd->con_type & CONNECT_PULL_READ, !=, 0);
 
-            uni_dir_socket_requester* read = in->buf->file->fd->read.pull_reader;
+            requester_t read = in->buf->file->fd->read.pull_reader;
 
             size_t file_size = in->buf->file_last - in->buf->file_pos;
 
@@ -125,11 +126,11 @@ ngx_cherios_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
 
             size_t to_send = file_size > (limit-total) ? limit-total : file_size;
 
-            res = socket_internal_requester_space_wait(read, 1, 1, 0);
+            res = socket_requester_space_wait(read, 1, 1, 0);
 
             if(res != 0) {assert(0);} // TODO
 
-            res = socket_internal_requester_space_wait(req, 1, 1, 0);
+            res = socket_requester_space_wait(req, 1, 1, 0);
 
             if(res != 0) {assert(0);} // TODO
 
@@ -139,7 +140,7 @@ ngx_cherios_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
 
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "Proxy join of %lx bytes\n", to_send);
 
-            res = socket_internal_request_proxy_join(read, &pp->req.r, &pp->drb, to_send, 0, req, &pp->ff, 0);
+            res = socket_request_proxy_join(read, pp->req, &pp->drb, to_send, 0, req, pp->ff, 0);
             //c->buffered |= NGX_LOWLEVEL_BUFFERED;
 
             assert_int_ex(res, ==, 0);
@@ -179,13 +180,13 @@ ngx_cherios_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
 
         if((prev != in->buf->pos)) {
             if(base) {
-                socket_internal_request_ind(req, base, col, 0);
+                socket_request_ind(req, base, col, 0);
                 //c->buffered |= NGX_LOWLEVEL_BUFFERED;
             }
 
-            res = socket_internal_requester_space_wait(req, 1, 1, 0);
+            res = socket_requester_space_wait(req, 1, 1, 0); // Sometimes returns E_SOCKET_CLOSED. Close race?
 
-            if(res != 0) {assert(0);} // TODO
+            assert_int_ex(res, ==, 0);
 
             base = in->buf->pos;
             col = 0;
@@ -201,7 +202,7 @@ ngx_cherios_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
     }
 
     if(base) {
-        socket_internal_request_ind(req, base, col, 0);
+        socket_request_ind(req, base, col, 0);
         //c->buffered |= NGX_LOWLEVEL_BUFFERED;
     }
 

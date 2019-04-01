@@ -384,7 +384,7 @@ int getsockname(ngx_socket_t sockfd, struct sockaddr *addr, socklen_t *addrlen) 
 }
 
 int ngx_close_socket(ngx_socket_t s) {
-    uni_dir_socket_requester* req =  s->write.push_writer;
+    requester_t req =  s->write.push_writer;
 
     return (int)map_sock_errors(close(s));
 }
