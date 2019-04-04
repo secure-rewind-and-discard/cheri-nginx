@@ -243,7 +243,7 @@ ngx_fd_t ngx_open_file(u_char *name, u_long mode, u_long create, u_long access) 
 
     u_long nonblock = mode & NGX_FILE_NONBLOCK;
 
-    ERROR_T(FILE_t) result = open_er(name, (int)(mode & 0xFF), (nonblock ? MSG_DONT_WAIT : MSG_NONE) | SOCKF_GIVE_SOCK_N);
+    ERROR_T(FILE_t) result = open_er(name, (int)(mode & 0xFF), (nonblock ? MSG_DONT_WAIT : MSG_NONE) | SOCKF_GIVE_SOCK_N, NULL, NULL);
 
     if(IS_VALID(result)) {
         ssize_t res = 0;
