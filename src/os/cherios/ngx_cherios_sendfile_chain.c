@@ -56,6 +56,7 @@ void init_pair(proxy_pair* pp) {
     pp->ff = socket_malloc_fulfiller(SOCK_TYPE_PUSH);
     socket_fulfiller_connect(pp->ff, socket_make_ref_for_fulfill(pp->req));
     socket_requester_connect(pp->req);
+    socket_requester_restrict_seal(pp->req, get_ethernet_sealing_cap());
 }
 
 proxy_pair* alloc_proxy(ngx_pool_t* pool) {
