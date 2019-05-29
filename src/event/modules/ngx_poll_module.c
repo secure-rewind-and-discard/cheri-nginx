@@ -122,7 +122,7 @@ ngx_poll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
 
     if (ev->index != NGX_INVALID_INDEX) {
         ngx_log_error(NGX_LOG_ALERT, ev->log, 0,
-                      "poll event fd:%d ev:%i is already set", c->fd, event);
+                      "poll event fd:%d ev:%i is already set", NULL, event);
         return NGX_OK;
     }
 

@@ -187,6 +187,8 @@ ngx_cherios_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
 
             res = socket_requester_space_wait(req, 1, 1, 0); // Sometimes returns E_SOCKET_CLOSED. Close race?
 
+            if(res == E_SOCKET_CLOSED) return (ngx_chain_t*) NGX_ERROR;
+
             assert_int_ex(res, ==, 0);
 
             base = in->buf->pos;

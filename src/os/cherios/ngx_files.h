@@ -121,7 +121,7 @@ ssize_t readv(FILE_t fd, const struct iovec *vector, int count);
 ssize_t writev(FILE_t fd, const struct iovec *vector, int count);
 
 static inline ssize_t sendto(FILE_t sockfd, const void *buf, size_t len, int flags,
-                             const struct sockaddr *dest_addr, socklen_t addrlen) {
+                             __unused const struct sockaddr *dest_addr, __unused socklen_t addrlen) {
     return socket_send(sockfd, buf, len, flags);
 }
 

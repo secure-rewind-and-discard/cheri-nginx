@@ -119,7 +119,7 @@ typedef uintptr_t	ngx_vaddr_t;
 #endif
 static inline u_char*
 ngx_align_ptr(void* p, size_t align) {
-    return (u_char*)p + ((align - (ngx_vaddr_t)p) & (align - 1));
+    return (u_char*)__builtin_align_up(p, align);
 }
 
 

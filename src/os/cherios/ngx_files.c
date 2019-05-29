@@ -76,7 +76,7 @@ ssize_t ngx_write_chain_to_file(ngx_file_t *file, ngx_chain_t *ce,
     ssize_t res = lseek(file->fd, offset, SEEK_SET);
     if(res < 0) return map_sock_errors(res);
 
-    size_t total;
+    size_t total = 0;
 
     while(ce) {
         u_char * buf = ce->buf->pos;
@@ -90,7 +90,7 @@ ssize_t ngx_write_chain_to_file(ngx_file_t *file, ngx_chain_t *ce,
 
         assert(len != 0);
 
-        ssize_t res = write(file->fd, buf, len);
+        res = write(file->fd, buf, len);
 
         if(res < 0) return total > 0 ? (ssize_t)total : map_sock_errors(res);
 
@@ -315,6 +315,8 @@ ngx_err_t ngx_fd_info(ngx_fd_t fd, ngx_file_info_t* info) {
     info->st_gid = NO_GROUP_ID;
     info->st_uid = NO_USER_ID;
     info->st_mode = 0; // TODO infer mode from socket flags
+
+    return NGX_OK;
 }
 
 ngx_int_t ngx_set_file_time(u_char *name, ngx_fd_t fd, time_t s) {
