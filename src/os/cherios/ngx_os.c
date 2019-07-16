@@ -77,6 +77,8 @@ ngx_int_t ngx_os_init(ngx_log_t *log) {
 
     res = unlink(NGX_PREFIX NGX_HTTP_CLIENT_TEMP_PATH);
 
+    msg_allow_more_sends();
+
     return NGX_OK;
 }
 
