@@ -42,6 +42,18 @@ struct request_aio {
 
 };
 
+// Not the safest thing in the world, but I can't find the hook in NGINX for freeing things when a connection is closed.
+// Instead we just loop through and try to find a requester/fulfiller not in use and then reset them
+
+#define PROXY_POOL_MAX 32
+
+struct fandr {
+    fulfiller_t ff;
+    requester_t requester;
+} reusepool[PROXY_POOL_MAX];
+
+size_t reuse_ndx = 0;
+
 typedef struct proxy_pair {
     fulfiller_t ff;
     requester_t req;
@@ -50,13 +62,43 @@ typedef struct proxy_pair {
 } proxy_pair;
 
 void init_pair(proxy_pair* pp) {
-    // FIXME now these are not inline they will not be cleaned up automatically leading to a memory leak
+
+    static sealing_cap sc = NULL;
+
+    if(sc == NULL) {
+        sc = get_ethernet_sealing_cap();
+    }
+
+    requester_t req = NULL;
+    fulfiller_t ful;
+    size_t started_at = reuse_ndx;
+    do {
+        if(reusepool[reuse_ndx].ff == NULL) {
+            req = socket_malloc_requester_32(SOCK_TYPE_PUSH, &pp->drb);
+            ful = socket_malloc_fulfiller(SOCK_TYPE_PUSH);
+            reusepool[reuse_ndx].ff = ful;
+            reusepool[reuse_ndx].requester = req;
+            socket_fulfiller_connect(ful, socket_make_ref_for_fulfill(req));
+            socket_requester_connect(req);
+            socket_requester_restrict_seal(req, sc);
+        } else {
+            ful = reusepool[reuse_ndx].ff;
+            if(socket_fulfiller_wait_proxy(ful, 1, 0) == 0) {
+                req = reusepool[reuse_ndx].requester;
+                socket_reuse_fulfiller(ful, SOCK_TYPE_PUSH);
+                socket_reuse_requester(req, 32, SOCK_TYPE_PUSH, &pp->drb);
+                socket_fulfiller_connect(ful, socket_make_ref_for_fulfill(req));
+                socket_requester_connect(req);
+                socket_requester_restrict_seal(req, sc);
+            }
+        }
+    } while(req == NULL && (reuse_ndx = ((reuse_ndx + 1) % PROXY_POOL_MAX)) != started_at);
+
+    assert(req != NULL);
+
     init_data_buffer(&pp->drb,pp->drb_data, SF_DRB_SIZE);
-    pp->req = socket_malloc_requester_32(SOCK_TYPE_PUSH, &pp->drb);
-    pp->ff = socket_malloc_fulfiller(SOCK_TYPE_PUSH);
-    socket_fulfiller_connect(pp->ff, socket_make_ref_for_fulfill(pp->req));
-    socket_requester_connect(pp->req);
-    socket_requester_restrict_seal(pp->req, get_ethernet_sealing_cap());
+    pp->req = req;
+    pp->ff = ful;
 }
 
 proxy_pair* alloc_proxy(ngx_pool_t* pool) {
