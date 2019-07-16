@@ -42,7 +42,7 @@ typedef uint16_t in_port_t;
 
 #define IP_BIND_ADDRESS_NO_PORT 0
 #define AF_UNIX 1
-#define NGX_LISTEN_BACKLOG 4
+#define NGX_LISTEN_BACKLOG 16
 
 int getsockopt(ngx_socket_t sockfd, int level, int optname, void *optval, socklen_t *optlen);
 int setsockopt(ngx_socket_t sockfd, int level, int optname, const void *optval, socklen_t optlen);
