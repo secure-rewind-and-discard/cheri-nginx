@@ -417,6 +417,7 @@ static int glob(const char *pattern, int flags,
          glob_t *pglob) {
     printf(KRED"Tried to glob pattern %s\n"KRST, pattern);
     assert(0);
+    while(1);
 }
 
 static void globfree(glob_t *pglob) {

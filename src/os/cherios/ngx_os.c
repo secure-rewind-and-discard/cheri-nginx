@@ -101,4 +101,5 @@ int random(void) {
 ngx_int_t ngx_libc_crypt(ngx_pool_t *pool, u_char *key, u_char *salt,
                          u_char **encrypted) {
     assert(0 && "No libc crypt =(");
+    while(1);
 }

@@ -192,4 +192,5 @@ ngx_master_process_exit(ngx_cycle_t *cycle)
 
 ngx_pid_t ngx_execute(ngx_cycle_t *cycle, ngx_exec_ctx_t *ctx) {
     assert(0);
+    while(1);
 }
