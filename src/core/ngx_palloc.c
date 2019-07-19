@@ -160,7 +160,8 @@ ngx_palloc_small(ngx_pool_t *pool, size_t size, ngx_uint_t align)
             m = ngx_align_ptr(m, NGX_ALIGNMENT);
         }
 
-        if ((size_t) (p->d.end - m) >= size) {
+	// Alignment can overflow buffer, need to use a signed type
+        if ((ssize_t) (p->d.end - m) >= (ssize_t)size) {
             p->d.last = m + size;
 
             return m;
