@@ -144,6 +144,10 @@ ngx_cherios_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
 
     requester_t req = c->fd->write.push_writer;
 
+
+    act_notify_kt notify_tok = NULL;
+    int taken_token = 0;
+
     // Send everything up to the first file
     for ( /* void */ ; in && total < limit; in = in->next) {
 
@@ -151,6 +155,10 @@ ngx_cherios_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
 
         if(in->buf->in_file) {
             if(base) {
+                if(!taken_token) {
+                    notify_tok = socket_requester_take_fulfillers_notify_token(req);
+                    taken_token = 1;
+                }
                 socket_request_ind(req, base, col, 0);
                 //c->buffered |= NGX_LOWLEVEL_BUFFERED;
                 base = NULL;
@@ -182,6 +190,11 @@ ngx_cherios_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
             assert(pp != NULL);
 
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "Proxy join of %lx bytes\n", to_send);
+
+            if(notify_tok) {
+                socket_fulfill_proxy_outstanding_wait(pp->ff, 1, notify_tok);
+                notify_tok = NULL;
+            }
 
             res = socket_request_proxy_join(read, pp->req, &pp->drb, to_send, 0, req, pp->ff, 0);
             //c->buffered |= NGX_LOWLEVEL_BUFFERED;
@@ -223,6 +236,10 @@ ngx_cherios_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
 
         if((prev != in->buf->pos)) {
             if(base) {
+                if(!taken_token) {
+                    notify_tok = socket_requester_take_fulfillers_notify_token(req);
+                    taken_token = 1;
+                }
                 socket_request_ind(req, base, col, 0);
                 //c->buffered |= NGX_LOWLEVEL_BUFFERED;
             }
@@ -249,6 +266,11 @@ ngx_cherios_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
     if(base) {
         socket_request_ind(req, base, col, 0);
         //c->buffered |= NGX_LOWLEVEL_BUFFERED;
+    }
+
+    // If we stole a token but didn't do anything then we need to notify. Otherwise the proxy will take care of it.
+    if(notify_tok) {
+        syscall_cond_notify(notify_tok);
     }
 
     return in;
