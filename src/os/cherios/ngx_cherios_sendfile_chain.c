@@ -63,11 +63,7 @@ typedef struct proxy_pair {
 
 void init_pair(proxy_pair* pp) {
 
-    static sealing_cap sc = NULL;
-
-    if(sc == NULL) {
-        sc = get_ethernet_sealing_cap();
-    }
+    sealing_cap sc = get_ethernet_sealing_cap();
 
     requester_t req = NULL;
     fulfiller_t ful;
