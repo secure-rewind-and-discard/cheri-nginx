@@ -40,11 +40,8 @@ typedef int ngx_err_t;
 
 ngx_int_t ngx_strerror_init(void);
 
-
-// TODO map some sock errors
-
 // The FR errors are exactly aligned with NGX errors so we can cast
-
+// The socket errors (which start at -1) come next and can just be shifted
 #define NGX_ER_LIST(ITEM)               \
     ITEM(NGX_NO_ER = 0)                 \
     ITEM(NGX_FR_DISK_ERR)               \
@@ -85,7 +82,11 @@ ngx_int_t ngx_strerror_init(void);
     ITEM(NGX_ENOT_CONNECTED)            \
     ITEM(NGX_EOOB)                      \
     ITEM(NGX_EBAD_FLAGS)                \
-    ITEM(NGX_EUSER_FULFILL_ERROR)       /* ... -19 */       \
+    ITEM(NGX_E_IN_JOIN)                 \
+    ITEM(NGX_E_USER_FULFILL_ERROR)      \
+    ITEM(NGX_E_AUTH_TOKEN_ERROR)        \
+    ITEM(NGX_E_BAD_RESERVATION)         \
+    ITEM(NGX_E_BAD_SEAL)                   /* ... -23 */       \
     ITEM(NGX_EOPNOTSUPP)                \
     ITEM(NGX_ENOSPC)                    \
     ITEM(NGX_EXDEV)                     \
