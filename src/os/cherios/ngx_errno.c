@@ -31,15 +31,16 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <nginx.h>
+#include "errno.h"
 
-DEFINE_ENUM_AR(ngx_err_e, NGX_ER_LIST);
+DEFINE_ENUM_AR(err_e, ER_LIST);
 
 ngx_int_t ngx_strerror_init(void) {
     return NGX_OK;
 }
 
 u_char * ngx_strerror(ngx_err_t err, u_char *errstr, size_t size) {
-    const char* as_str = enum_ngx_err_e_tostring(err);
+    const char* as_str = enum_err_e_tostring(err);
     size_t len = strlen(as_str);
     len = len > size ? size : len;
     memcpy(errstr, as_str, len);

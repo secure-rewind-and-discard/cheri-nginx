@@ -134,7 +134,7 @@ ssize_t aio_return(struct aiocb *aiocbp);
 int aio_error(const struct aiocb *aiocbp);
 #endif
 
-#define ngx_close_file close
+#define ngx_close_file close_file
 #define ngx_close_file_n           "Close()"
 
 #define ngx_delete_file(name)       0
@@ -223,18 +223,16 @@ int chmod(const char *pathname, mode_t mode);
 #define NGX_LINEFEED             "\x0a"
 #define ngx_path_separator(c)    ((c) == '/')
 
-// TODO
-
-#define NGX_FILE_APPEND             ((1 << 16) | FA_WRITE)
-#define NGX_FILE_CREATE_OR_OPEN     FA_OPEN_ALWAYS
+#define NGX_FILE_APPEND             O_APPEND
+#define NGX_FILE_CREATE_OR_OPEN     O_CREAT
 #define NGX_FILE_DEFAULT_ACCESS     0000
 #define NGX_FILE_OWNER_ACCESS       0000
-#define NGX_FILE_RDWR               (FA_READ | FA_WRITE)
-#define NGX_FILE_RDONLY             FA_READ
+#define NGX_FILE_RDWR               O_RDWR
+#define NGX_FILE_RDONLY             O_RDONLY
 #define NGX_FILE_OPEN               FA_OPEN_EXISTING
-#define NGX_FILE_WRONLY             FA_WRITE
-#define NGX_FILE_NONBLOCK           (1 << 17)
-#define NGX_FILE_TRUNCATE           ((1 << 18))
+#define NGX_FILE_WRONLY             O_WRONLY
+#define NGX_FILE_NONBLOCK           O_NONBLOCK
+#define NGX_FILE_TRUNCATE           O_TRUNC
 
 typedef struct {
     size_t   gl_pathc;    /* Count of paths matched so far  */

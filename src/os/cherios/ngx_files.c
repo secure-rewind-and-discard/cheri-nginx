@@ -37,44 +37,30 @@
 #include <ngx_event.h>
 #include "ngx_files.h"
 
-static int map_fs_errors(FRESULT fresult) {
-    if(fresult != FR_OK) {
-        ngx_errno = (int)fresult; // Organised to match
-        return NGX_ERROR;
-    }
-    return NGX_OK;
-}
-
-static ssize_t map_sock_errors(ssize_t sock_er) {
-    if(sock_er < 0) {
-        // TODO map some sock errors
-        if(sock_er == E_AGAIN) return NGX_AGAIN;
-        ngx_errno = (int)((-sock_er) + (NGX_E_AGAIN-1));
-        return NGX_ERROR;
-    }
-    return sock_er;
+static ssize_t ngx_map_sock_errors(ssize_t sock_er) {
+    return sock_er == E_AGAIN ? NGX_AGAIN : map_sock_errors(sock_er);
 }
 
 ssize_t ngx_read_fd(ngx_fd_t fd, void *buf, size_t size) {
-    return map_sock_errors(read(fd, buf, size));
+    return ngx_map_sock_errors(read_file(fd, buf, size));
 }
 
 ssize_t ngx_write_fd(ngx_fd_t fd, void *buf, size_t size) {
-    return map_sock_errors(write(fd, buf, size));
+    return ngx_map_sock_errors(write_file(fd, buf, size));
 }
 
 ssize_t ngxrecv(FILE_t file,  const void *buf, size_t len, int flags) {
-    return map_sock_errors(socket_recv(file,buf,len,flags));
+    return ngx_map_sock_errors(socket_recv(file,buf,len,flags));
 }
 
 ssize_t ngxsend(FILE_t file,  const void *buf, size_t len, int flags) {
-    return map_sock_errors(socket_send(file,buf,len,flags));
+    return ngx_map_sock_errors(socket_send(file,buf,len,flags));
 }
 
 ssize_t ngx_write_chain_to_file(ngx_file_t *file, ngx_chain_t *ce,
                                 off_t offset, ngx_pool_t *pool) {
-    ssize_t res = lseek(file->fd, offset, SEEK_SET);
-    if(res < 0) return map_sock_errors(res);
+    ssize_t res = lseek_file(file->fd, offset, SEEK_SET);
+    if(res < 0) return ngx_map_sock_errors(res);
 
     size_t total = 0;
 
@@ -90,9 +76,9 @@ ssize_t ngx_write_chain_to_file(ngx_file_t *file, ngx_chain_t *ce,
 
         assert(len != 0);
 
-        res = write(file->fd, buf, len);
+        res = write_file(file->fd, buf, len);
 
-        if(res < 0) return total > 0 ? (ssize_t)total : map_sock_errors(res);
+        if(res < 0) return total > 0 ? (ssize_t)total : ngx_map_sock_errors(res);
 
         total += len;
     }
@@ -110,7 +96,7 @@ ngx_read_file(ngx_file_t *file, u_char *buf, size_t size, off_t offset)
 
 
     if (file->sys_offset != offset) {
-        if (lseek(file->fd, offset, SEEK_SET) != 0) {
+        if (lseek_file(file->fd, offset, SEEK_SET) != 0) {
             ngx_log_error(NGX_LOG_CRIT, file->log, ngx_errno,
                           "lseek() \"%s\" failed", file->name.data);
             return NGX_ERROR;
@@ -119,10 +105,10 @@ ngx_read_file(ngx_file_t *file, u_char *buf, size_t size, off_t offset)
         file->sys_offset = offset;
     }
 
-    n = read(file->fd, buf, size);
+    n = read_file(file->fd, buf, size);
 
     if (n < 0) {
-        map_sock_errors(n);
+        ngx_map_sock_errors(n);
         ngx_log_error(NGX_LOG_CRIT, file->log, ngx_errno,
                       "read() \"%s\" failed", file->name.data);
         return NGX_ERROR;
@@ -148,7 +134,7 @@ ngx_write_file(ngx_file_t *file, u_char *buf, size_t size, off_t offset)
     written = 0;
 
     if (file->sys_offset != offset) {
-        if (lseek(file->fd, offset, SEEK_SET) != 0) {
+        if (lseek_file(file->fd, offset, SEEK_SET) != 0) {
             ngx_log_error(NGX_LOG_CRIT, file->log, ngx_errno,
                           "lseek() \"%s\" failed", file->name.data);
             return NGX_ERROR;
@@ -158,10 +144,10 @@ ngx_write_file(ngx_file_t *file, u_char *buf, size_t size, off_t offset)
     }
 
     for ( ;; ) {
-        n = write(file->fd, buf + written, size);
+        n = write_file(file->fd, buf + written, size);
 
         if (n < 0) {
-            map_sock_errors(n);
+            ngx_map_sock_errors(n);
 
             err = ngx_errno;
 
@@ -198,7 +184,7 @@ int aio_read(struct aiocb *aiocbp) {
 
     ssize_t res = socket_internal_requester_space_wait(req,1,1,0);
 
-    if(res != 0) return (int)map_sock_errors(res);
+    if(res != 0) return (int)ngx_map_sock_errors(res);
 
     res = socket_internal_request_ind(req,aiocbp->aio_buf,aiocbp->aio_nbytes,0);
 
@@ -206,7 +192,7 @@ int aio_read(struct aiocb *aiocbp) {
         aiocbp->aio_fildes->flags |= (SOCKF_POLL_READ_MEANS_EMPTY);
     }
 
-    return (int)map_sock_errors(res);
+    return (int)ngx_map_sock_errors(res);
 }
 
 ssize_t aio_return(struct aiocb *aiocbp) {
@@ -219,7 +205,7 @@ ssize_t aio_return(struct aiocb *aiocbp) {
         aiocbp->aio_fildes->flags &= ~(SOCKF_POLL_READ_MEANS_EMPTY);
     }
 
-    return map_sock_errors(res);
+    return ngx_map_sock_errors(res);
 }
 
 int aio_error(const struct aiocb *aiocbp) {
@@ -229,7 +215,7 @@ int aio_error(const struct aiocb *aiocbp) {
 
     if(res == E_AGAIN) return NGX_EINPROGRESS;
 
-    return (int)map_sock_errors(res);
+    return (int)ngx_map_sock_errors(res);
 }
 #endif
 
@@ -238,38 +224,8 @@ ngx_err_t ngx_rename_file(const char* o, const char* n) {
 }
 
 ngx_fd_t ngx_open_file(u_char *name, u_long mode, u_long create, u_long access) {
-
-    mode |= create;
-
-    u_long nonblock = mode & NGX_FILE_NONBLOCK;
-
-    ERROR_T(FILE_t) result = open_er(name, (int)(mode & 0xFF),
-            (nonblock ? MSG_DONT_WAIT : MSG_NONE) | SOCKF_GIVE_SOCK_N | MSG_BUFFER_WRITES,
-            NULL, NULL);
-
-    if(IS_VALID(result)) {
-        ssize_t res = 0;
-        if(mode & NGX_FILE_TRUNCATE) {
-            res = truncate(result.val);
-        }
-        if(res < 0) {
-            map_sock_errors(res);
-            return NULL;
-        }
-        if((mode & NGX_FILE_APPEND) == NGX_FILE_APPEND) {
-            res = lseek(result.val, 0, SEEK_END);
-        }
-        if(res < 0) {
-            map_sock_errors(res);
-            return NULL;
-        }
-    } else {
-        if((ssize_t)result.er < 0) map_sock_errors((ssize_t)result.er);
-        else map_fs_errors((FRESULT)result.er);
-        return NULL;
-    }
-
-    return result.val;
+    int fd = open(name, mode | create | access);
+    return fd != -1 ? posix_handle_to_socket(fd) : NULL;
 }
 
 ngx_fd_t ngx_open_tempfile(u_char *name, ngx_uint_t persistent,
@@ -311,7 +267,7 @@ ngx_err_t ngx_file_info(const char* name, ngx_file_info_t* info) {
 ngx_err_t ngx_fd_info(ngx_fd_t fd, ngx_file_info_t* info) {
     ssize_t fs = filesize(fd);
 
-    if(fs < 0) return map_sock_errors(fs);
+    if(fs < 0) return ngx_map_sock_errors(fs);
 
     info->st_size = (size_t)fs;
     info->st_gid = NO_GROUP_ID;
@@ -390,7 +346,7 @@ int getsockname(ngx_socket_t sockfd, struct sockaddr *addr, socklen_t *addrlen) 
 int ngx_close_socket(ngx_socket_t s) {
     requester_t req =  s->write.push_writer;
 
-    return (int)map_sock_errors(close(s));
+    return (int)ngx_map_sock_errors(close_file(s));
 }
 
 ngx_err_t ngx_nonblocking(ngx_socket_t s) {
@@ -404,12 +360,12 @@ ngx_err_t ngx_blocking(ngx_socket_t s) {
 }
 
 int ngx_shutdown_socket(ngx_socket_t s, int how) {
-    return (int)map_sock_errors(shutdown(s, how));
+    return (int)ngx_map_sock_errors(shutdown(s, how));
 }
 
 size_t ngx_sock_to_int(ngx_socket_t sockfd) {
     assert(sockfd->flags & SOCKF_GIVE_SOCK_N);
-    return sockfd->sockn;
+    return socket_to_posix_handle(sockfd);
 }
 
 #define GLOB_NOMATCH -1
@@ -494,7 +450,7 @@ int ngx_tcp_push(ngx_socket_t s) {
 ngx_socket_t ngx_socket(int domain, int type, int protocol) {
     ERROR_T(unix_net_sock_ptr) res = socket_or_er(domain, type, protocol);
     if(!IS_VALID(res)) {
-        map_sock_errors((ssize_t)res.er);
+        ngx_map_sock_errors((ssize_t)res.er);
         return (ngx_socket_t) -1;
     }
     assign_socket_n(&res.val->sock);
@@ -512,7 +468,7 @@ ssize_t readv(FILE_t fd, const struct iovec *vector, int count) {
         total += res;
         if(res != vector[i].iov_len) break;
     }
-    return map_sock_errors(total);
+    return ngx_map_sock_errors(total);
 }
 
 ssize_t writev(FILE_t fd, const struct iovec *vector, int count) {
@@ -526,7 +482,7 @@ ssize_t writev(FILE_t fd, const struct iovec *vector, int count) {
         total += res;
         if(res != vector[i].iov_len) break;
     }
-    return map_sock_errors(total);
+    return ngx_map_sock_errors(total);
 }
 
 ssize_t sendmsg(FILE_t sockfd, const struct msghdr *msg, int flags) {
@@ -543,7 +499,7 @@ ssize_t sendmsg(FILE_t sockfd, const struct msghdr *msg, int flags) {
         total += res;
         if(res != vector[i].iov_len) break;
     }
-    return map_sock_errors(total);
+    return ngx_map_sock_errors(total);
 }
 
 ssize_t recvmsg(FILE_t sockfd, struct msghdr *msg, int flags) {
@@ -560,5 +516,5 @@ ssize_t recvmsg(FILE_t sockfd, struct msghdr *msg, int flags) {
         total += res;
         if(res != vector[i].iov_len) break;
     }
-    return map_sock_errors(total);
+    return ngx_map_sock_errors(total);
 }

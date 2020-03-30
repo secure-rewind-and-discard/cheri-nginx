@@ -33,9 +33,7 @@
 #include <lwip/sockets.h>
 #include "syscalls.h"
 #include "cheric.h"
-
-typedef register_t time_t;
-typedef register_t suseconds_t;
+#include "sys/time.h"
 
 typedef ngx_rbtree_key_t      ngx_msec_t;
 typedef ngx_rbtree_key_int_t  ngx_msec_int_t;
@@ -59,31 +57,14 @@ typedef ngx_rbtree_key_int_t  ngx_msec_int_t;
 #define ngx_tm_wday_t         int
 #define ngx_tm_gmtoff_t       int
 
-typedef struct tm {
-    ngx_tm_sec_t    tm_sec;
-    ngx_tm_min_t    tm_min;
-    ngx_tm_hour_t   tm_hour;
-    ngx_tm_mday_t   tm_mday;
-    ngx_tm_mon_t    tm_mon;
-    ngx_tm_year_t   tm_year;
-    ngx_tm_wday_t   tm_wday;
-    ngx_tm_gmtoff_t tm_gmtoff;
-} ngx_tm_t;
-
-
-
+typedef tm ngx_tm_t;
 
 typedef int64_t time_int_t;
 
 #define ngx_msec_int_t        int64_t
 
 static void ngx_gettimeofday(struct timeval* tv) {
-    register_t cycles = syscall_now();
-    register_t us = CLOCK_TO_US(cycles);
-    register_t s = us / (1000 * 1000);
-    us -= (1000 * 1000 * s);
-    tv->tv_sec = s;
-    tv->tv_usec = us;
+    return gettimeofday(tv, 0);
 }
 
 #define ngx_libc_localtime(now,tm) ngx_gmtime(now,tm); (tm)->tm_gmtoff = 0
