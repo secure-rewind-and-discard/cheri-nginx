@@ -44,11 +44,6 @@
 #endif
 
 /*
- * CHERI is big endian.
- */
-#undef NGX_HAVE_LITTLE_ENDIAN
-
-/*
  * sendfile(2) appears to be broken.
  */
 #undef NGX_HAVE_SENDFILE
