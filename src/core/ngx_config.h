@@ -43,6 +43,10 @@
 
 #endif
 
+#ifndef __has_builtin
+#define __has_builtin(x) 0
+#endif
+
 /*
  * sendfile(2) appears to be broken.
  */
@@ -107,20 +111,14 @@ typedef uintptr_t	ngx_vaddr_t;
 #define NGX_ALIGNMENT   sizeof(void *)    /* platform word */
 #endif
 
+#if __has_builtin(__builtin_align_up)
+#define ngx_align(d, a)     __builtin_align_up(d, a)
+#define ngx_align_ptr(p, a) __builtin_align_up(p, a)
+#else
 #define ngx_align(d, a)     (((d) + (a - 1)) & ~(a - 1))
-/* XXXAR: bitwise and on uintptr_t only works on the offset, so we add
- * (requested alignment - current alignment offset) to the pointer instead */
-#if 0
 #define ngx_align_ptr(p, a)                                                   \
     (u_char *) (((uintptr_t) (p) + ((uintptr_t) a - 1)) & ~((uintptr_t) a - 1))
 #endif
-static inline u_char*
-ngx_align_ptr(void* p, size_t align) {
-    if (((ngx_vaddr_t)p & (align - 1)) == 0)
-        return (u_char*)p;
-    /* XXXAR: TODO: assert that align is a power of two */
-    return ((u_char *)p + (align - ((ngx_vaddr_t)p & (align - 1))));
-}
 
 
 #define ngx_abort       abort
