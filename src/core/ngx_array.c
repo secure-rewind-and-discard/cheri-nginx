@@ -59,8 +59,8 @@ ngx_array_push(ngx_array_t *a)
 
         p = a->pool;
 
-        if ((size_t) a->elts + size == (size_t)p->d.last
-            && (size_t)p->d.last + a->size <= (size_t)p->d.end)
+        if ((u_char *) a->elts + size == p->d.last
+            && p->d.last + a->size <= p->d.end)
         {
             /*
              * the array allocation is the last in the pool
