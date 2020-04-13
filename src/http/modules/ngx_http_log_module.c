@@ -772,22 +772,16 @@ static u_char *
 ngx_http_log_copy_short(ngx_http_request_t *r, u_char *buf,
     ngx_http_log_op_t *op)
 {
-    // FIXME: CHERI: this is wrong, why not just use memcpy?
-#if 0
-    size_t     len;
-    uintptr_t  data;
+    size_t      len;
+    ngx_vaddr_t data;
 
     len = op->len;
-    data = op->data;
+    data = (ngx_vaddr_t) op->data;
 
     while (len--) {
         *buf++ = (u_char) (data & 0xff);
         data >>= 8;
     }
-#else
-    assert(op->len <= sizeof(op->data));
-    memcpy(buf, &op->data, op->len);
-#endif
 
     return buf;
 }
@@ -1684,18 +1678,14 @@ ngx_http_log_compile_format(ngx_conf_t *cf, ngx_array_t *flushes,
                 op->len = len;
                 op->getlen = NULL;
 
-                if (len <= sizeof(op->data)) {
+                if (len <= sizeof(ngx_vaddr_t)) {
                     op->run = ngx_http_log_copy_short;
                     op->data = 0;
-                    // FIXME: some more dubious memcpy code
-#if 0
+
                     while (len--) {
                         op->data <<= 8;
                         op->data |= data[len];
                     }
-#else
-                    memcpy(&op->data, data, len);
-#endif
 
                 } else {
                     op->run = ngx_http_log_copy_long;
