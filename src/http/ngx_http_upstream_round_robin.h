@@ -128,7 +128,7 @@ typedef struct {
     ngx_uint_t                      config;
     ngx_http_upstream_rr_peers_t   *peers;
     ngx_http_upstream_rr_peer_t    *current;
-    vaddr_t                        *tried;
+    ngx_vaddr_t                    *tried;
     uintptr_t                       data;
 } ngx_http_upstream_rr_peer_data_t;
 
