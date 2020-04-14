@@ -31,6 +31,7 @@ static ngx_thread_value_t __stdcall ngx_cache_loader_thread(void *data);
 ngx_uint_t     ngx_process;
 ngx_uint_t     ngx_worker;
 ngx_pid_t      ngx_pid;
+ngx_pid_t      ngx_parent;
 
 ngx_uint_t     ngx_inherited;
 ngx_pid_t      ngx_new_binary;
@@ -782,11 +783,7 @@ ngx_worker_thread(void *data)
     while (!ngx_quit) {
 
         if (ngx_exiting) {
-            ngx_event_cancel_timers();
-
-            if (ngx_event_timer_rbtree.root
-                == ngx_event_timer_rbtree.sentinel)
-            {
+            if (ngx_event_no_timers_left() == NGX_OK) {
                 break;
             }
         }
@@ -804,6 +801,7 @@ ngx_worker_thread(void *data)
 
             if (!ngx_exiting) {
                 ngx_exiting = 1;
+                ngx_set_shutdown_timer(cycle);
                 ngx_close_listening_sockets(cycle);
                 ngx_close_idle_connections(cycle);
             }
