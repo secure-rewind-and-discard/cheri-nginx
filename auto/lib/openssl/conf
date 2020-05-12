@@ -62,7 +62,22 @@ else
         ngx_feature_path=
         ngx_feature_libs="-lssl -lcrypto $NGX_LIBDL $NGX_LIBPTHREAD"
         ngx_feature_test="SSL_CTX_set_options(NULL, 0)"
-        . auto/feature
+
+        if [ -z "$NGX_OPENSSL_fett_path" ]; then
+            . auto/feature
+        else
+
+            # FETT support
+
+            ngx_feature="OpenSSL library in ${NGX_OPENSSL_fett_path}"
+            ngx_feature_path="${NGX_OPENSSL_fett_path}/include"
+
+            ngx_feature_libs="-L${NGX_OPENSSL_fett_path}/lib -Wl,-rpath,${NGX_OPENSSL_fett_rpath} -lssl -lcrypto"
+
+            ngx_feature_libs="$ngx_feature_libs $NGX_LIBDL $NGX_LIBPTHREAD"
+
+            . auto/feature
+        fi
 
         if [ $ngx_found = no ]; then
 
