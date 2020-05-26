@@ -86,8 +86,6 @@ void ngx_os_status(ngx_log_t *log) {
 
 }
 
-ngx_uint_t             ngx_event_flags;
-
 int gethostname(char* name, size_t len) {
     if(sizeof(CHERIOS_HOST) > len) return -1;
     memcpy(name, CHERIOS_HOST, sizeof(CHERIOS_HOST));
