@@ -163,10 +163,13 @@ ngx_palloc_small(ngx_pool_t *pool, size_t size, ngx_uint_t align)
             m = ngx_align_ptr(m, NGX_ALIGNMENT);
         }
 
-	// Alignment can overflow buffer, need to use a signed type
-        if ((ssize_t) (p->d.end - m) >= (ssize_t)size) {
+        // Alignment can overflow buffer, need to use a signed type
+        if ((ssize_t) (p->d.end - m) >= (ssize_t) size) {
             p->d.last = m + size;
 
+#ifdef __CHERI_PURE_CAPABILITY__
+            m = cheri_setbounds(m, size);
+#endif
             return m;
         }
 
@@ -210,6 +213,9 @@ ngx_palloc_block(ngx_pool_t *pool, size_t size)
 
     p->d.next = new;
 
+#ifdef __CHERI_PURE_CAPABILITY__
+    m = cheri_setbounds(m, size);
+#endif
     return m;
 }
 
