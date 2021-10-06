@@ -76,7 +76,8 @@ ngx_int_t ngx_os_init(ngx_log_t *log) {
     Tmkdir("/nginx/temp");
 
     res = unlink(NGX_PREFIX NGX_HTTP_CLIENT_TEMP_PATH);
-
+    // Ignoring result because the directories may actually exist. Would be better to handle that case explictly.
+    (void)res;
     msg_allow_more_sends();
 
     return NGX_OK;
