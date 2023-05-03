@@ -83,10 +83,10 @@ typedef intptr_t        ngx_int_t;
 typedef uintptr_t       ngx_uint_t;
 typedef intptr_t        ngx_flag_t;
 
-#ifdef _VADDR_T_DECLARED
-typedef vaddr_t		ngx_vaddr_t;
+#ifdef _PTRADDR_T_DECLARED
+typedef ptraddr_t	ngx_ptraddr_t;
 #else
-typedef uintptr_t	ngx_vaddr_t;
+typedef uintptr_t	ngx_ptraddr_t;
 #endif
 
 
