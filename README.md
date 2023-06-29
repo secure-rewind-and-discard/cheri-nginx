@@ -25,12 +25,55 @@ Once installed nginx can be started passing in a configuration file as:
 
 To stop the server:
 
-`sudo /usr/local/sbin/nginx -s stop`
+`sudo /usr/local/nginx/sbin/nginx -s stop`
 
 Further details ons starting and stopping nginx and writting a
 configuration file can be found,
 [Starting, Stopping, and Restarting NGINX](https://www.nginx.com/resources/wiki/start/topics/tutorials/commandline/) and
 [Creating NGINX Plus and NGINX Configuration Files](https://docs.nginx.com/nginx/admin-guide/basic-functionality/managing-configuration-files/).
+
+## Library compartmentalization
+
+Following the instructions `man c18n`:
+
+```
+$ readelf -l /usr/local/nginx/sbin/nginx
+
+Elf file type is DYN (Shared object file)
+Entry point 0x6ae01
+There are 11 program headers, starting at offset 64
+
+Program Headers:
+  Type           Offset             VirtAddr           PhysAddr
+                 FileSiz            MemSiz              Flg    Align
+  PHDR           0x0000000000000040 0x0000000000000040 0x0000000000000040
+                 0x0000000000000268 0x0000000000000268  R      0x8
+  INTERP         0x0000000000000400 0x0000000000000400 0x0000000000000400
+                 0x0000000000000015 0x0000000000000015  R      0x1
+      [Requesting program interpreter: /libexec/ld-elf.so.1]
+...
+
+$ patchelf --print-interpreter /usr/local/sbin/nginx
+/libexec/ld-elf.so.1
+```
+
+The runtime linker can either be changed when running configure:
+
+`$ auto/configure --with-ld-opt="-Wl,--dynamic-linker=/libexec/ld-elf-c18n.so.1"` 
+
+or can be changed using patchelf:
+
+```
+$ sudo patchelf --set-interpreter /libexec/ld-elf-c18n.so.1  /usr/local/sbin/nginx
+$ patchelf --print-interpreter /usr/local/sbin/nginx
+/libexec/ld-elf-c18n.so.1
+```
+
+To start nginx the modifed runtime linker must be able to locate the
+following library: `libpcre.so.1`. This can be achieved by specifying the
+environmental variable `LD_C18N_LIBRARY_PATH` as follows:
+
+`$ sudo LD_C18N_LIBRARY_PATH=/usr/local/lib /usr/local/nginx/sbin/nginx -c ...`
 
 ## Notes and Limitations
 
