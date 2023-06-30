@@ -3330,7 +3330,7 @@ ngx_http_core_init_main_conf(ngx_conf_t *cf, void *conf)
 
 
     ngx_conf_init_uint_value(cmcf->variables_hash_max_size, 1024);
-    ngx_conf_init_uint_value(cmcf->variables_hash_bucket_size, 64);
+    ngx_conf_init_uint_value(cmcf->variables_hash_bucket_size, 128);
 
     cmcf->variables_hash_bucket_size =
                ngx_align(cmcf->variables_hash_bucket_size, ngx_cacheline_size);
@@ -3609,7 +3609,7 @@ ngx_http_core_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
                               prev->types_hash_max_size, 1024);
 
     ngx_conf_merge_uint_value(conf->types_hash_bucket_size,
-                              prev->types_hash_bucket_size, 64);
+                              prev->types_hash_bucket_size, 128);
 
     conf->types_hash_bucket_size = ngx_align(conf->types_hash_bucket_size,
                                              ngx_cacheline_size);
