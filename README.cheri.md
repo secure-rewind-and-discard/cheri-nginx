@@ -4,7 +4,10 @@ This software is an experimental Morello port of nginx v1.22.0.
 
 ## Build instructions
 
-`$ sudo pkg64 install gmake
+nginx is build with GNU make (gmake), first install this build
+dependency as follows:
+
+`$ sudo pkg64 install gmake`
 
 ```
 $ auto/configure
@@ -15,11 +18,11 @@ $ auto/configure
 	--with-compat
 $ gmake
 $ sudo gmake install
-``
+```
 
 ## Run instructions
 
-Once installed nginx can be started passing in a configuration file as:
+Once installed nginx can be started specifying a configuration file as:
  
 `sudo /usr/local/sbin/nginx -c <conf>`
 
@@ -34,7 +37,21 @@ configuration file can be found,
 
 ## Library compartmentalization
 
-Following the instructions `man c18n`:
+Following the instructions in `man c18n` the runtime linker can either be
+changed when running configure:
+
+`$ auto/configure --with-ld-opt="-Wl,--dynamic-linker=/libexec/ld-elf-c18n.so.1"` 
+
+or can be changed using patchelf:
+
+```
+$ sudo patchelf --set-interpreter /libexec/ld-elf-c18n.so.1  /usr/local/sbin/nginx
+$ patchelf --print-interpreter /usr/local/sbin/nginx
+/libexec/ld-elf-c18n.so.1
+```
+
+The change of runtime linker can be verified with either readelf or
+patchelf as below:
 
 ```
 $ readelf -l /usr/local/nginx/sbin/nginx
@@ -57,23 +74,14 @@ $ patchelf --print-interpreter /usr/local/sbin/nginx
 /libexec/ld-elf.so.1
 ```
 
-The runtime linker can either be changed when running configure:
-
-`$ auto/configure --with-ld-opt="-Wl,--dynamic-linker=/libexec/ld-elf-c18n.so.1"` 
-
-or can be changed using patchelf:
-
-```
-$ sudo patchelf --set-interpreter /libexec/ld-elf-c18n.so.1  /usr/local/sbin/nginx
-$ patchelf --print-interpreter /usr/local/sbin/nginx
-/libexec/ld-elf-c18n.so.1
-```
-
 To start nginx the modifed runtime linker must be able to locate the
 following library: `libpcre.so.1`. This can be achieved by specifying the
 environmental variable `LD_C18N_LIBRARY_PATH` as follows:
 
 `$ sudo LD_C18N_LIBRARY_PATH=/usr/local/lib /usr/local/nginx/sbin/nginx -c ...`
+
+nginx should then start running with shared libraries within their own
+compartmentments (manged and enforced by the modified runtime linker).
 
 ## Notes and Limitations
 
@@ -101,6 +109,6 @@ cases provide poor coverage) and the time available within the project
 to perform testing. We are not able to estimate what problems might
 remain beyond those resolved in the scope of the project.
 
-## Acknoledgement
+## Acknowledgement
 
 This work has been undertaken within DSTL contract ACC603483.
