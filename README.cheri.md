@@ -83,6 +83,61 @@ environmental variable `LD_C18N_LIBRARY_PATH` as follows:
 nginx should then start running with shared libraries within their own
 compartmentments (manged and enforced by the modified runtime linker).
 
+## Testing
+
+### Unit testing
+
+Unit testing has been performed using a corpus of Perl scripts
+[nginx-tests](http://hg.nginx.org/nginx-tests). The core HTTP function
+can be tested as (this require installation of Perl for the prove command
+line utility):
+
+```
+TEST_NGINX_BINARY=/usr/local/nginx/sbin/nginx prove http*
+http_absolute_redirect.t .... ok
+http_disable_symlinks.t ..... skipped: no disable_symlinks
+http_error_page.t ........... ok
+http_expect_100_continue.t .. ok
+http_header_buffers.t ....... ok
+http_headers_multi.t ........ ok
+http_host.t ................. ok
+http_include.t .............. ok
+http_keepalive.t ............ ok
+http_keepalive_shutdown.t ... ok
+http_listen.t ............... ok
+http_listen_wildcard.t ...... skipped: listen on wildcard address
+http_location.t ............. ok
+http_location_auto.t ........ ok
+http_location_win32.t ....... skipped: not win32
+http_method.t ............... ok
+http_resolver.t ............. ok
+http_resolver_aaaa.t ........ ok
+http_resolver_cleanup.t ..... ok
+http_resolver_cname.t ....... ok
+http_resolver_ipv4.t ........ skipped: no resolver ipv4
+http_server_name.t .......... ok
+http_try_files.t ............ ok
+http_uri.t .................. ok
+http_variables.t ............ ok
+All tests successful.
+Files=25, Tests=402, 67 wallclock secs ( 0.20 usr  0.05 sys +  4.80 cusr  1.07 csys =  6.11 CPU)
+Result: PASS
+```
+NOTE: That the connection pool size in the `http_header_buffers.t` script requires 
+increasing to 224.
+
+To run the unit tests with the runtime linker for library compartmentalisation
+include the `LD_C18N_LIBRARY_PATH` environmental variable:
+
+`LD_C18N_LIBRARY_PATH=/usr/local/lib TEST_NGINX_BINARY=/usr/local/nginx/sbin/nginx prove http*`
+
+### Performance testing
+
+Performance testing is performed using the `wrk` benchmark, as described
+in [Testing the Performance of NGINX and NGINX Plus Web Servers](https://www.nginx.com/blog/testing-the-performance-of-nginx-and-nginx-plus-web-servers/).
+
+`wrk -t12 -c400 -d30s https://192.168.2.2`
+
 ## Notes and Limitations
 
 As which many configure scripts, `-Werror` is enabled. This results in many
@@ -111,4 +166,5 @@ remain beyond those resolved in the scope of the project.
 
 ## Acknowledgement
 
-This work has been undertaken within DSTL contract ACC603483.
+This work has been undertaken within DSTL contract
+ACC6036483: CHERI-based compartmentalisation for web services on Morello.
