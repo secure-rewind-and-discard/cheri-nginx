@@ -46,8 +46,6 @@ or can be changed using patchelf:
 
 ```
 $ sudo patchelf --set-interpreter /libexec/ld-elf-c18n.so.1  /usr/local/sbin/nginx
-$ patchelf --print-interpreter /usr/local/sbin/nginx
-/libexec/ld-elf-c18n.so.1
 ```
 
 The change of runtime linker can be verified with either readelf or
@@ -81,7 +79,7 @@ environmental variable `LD_C18N_LIBRARY_PATH` as follows:
 `$ sudo LD_C18N_LIBRARY_PATH=/usr/local/lib /usr/local/nginx/sbin/nginx -c ...`
 
 nginx should then start running with shared libraries within their own
-compartmentments (manged and enforced by the modified runtime linker).
+compartmentments (manged and enforced by the updated runtime linker).
 
 ## Testing
 
@@ -89,8 +87,8 @@ compartmentments (manged and enforced by the modified runtime linker).
 
 Unit testing has been performed using a corpus of Perl scripts
 [nginx-tests](http://hg.nginx.org/nginx-tests). The core HTTP function
-can be tested as (this require installation of Perl for the prove command
-line utility):
+can be tested as (this require installation of Perl for the `prove`
+command line utility):
 
 ```
 TEST_NGINX_BINARY=/usr/local/nginx/sbin/nginx prove http*
@@ -123,6 +121,7 @@ All tests successful.
 Files=25, Tests=402, 67 wallclock secs ( 0.20 usr  0.05 sys +  4.80 cusr  1.07 csys =  6.11 CPU)
 Result: PASS
 ```
+
 NOTE: That the connection pool size in the `http_header_buffers.t` script requires 
 increasing to 224.
 
