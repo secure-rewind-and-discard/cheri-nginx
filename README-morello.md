@@ -40,6 +40,9 @@ file can be found,
 
 ## Library compartmentalization
 
+When using Library compartmentalisation nginx must be build with the 
+following flags: `-Xclang -morello-bounded-memargs=caller-only`.
+
 Following the instructions given by in `man c18n` the runtime linker can either
 be changed to support library compartmentalisation when running configure:
 
