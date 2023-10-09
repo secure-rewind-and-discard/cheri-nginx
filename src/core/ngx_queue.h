@@ -4,7 +4,7 @@
  * Copyright (C) Nginx, Inc.
  */
 
-
+#include <sys/cdefs.h>
 #include <ngx_config.h>
 #include <ngx_core.h>
 
@@ -15,10 +15,17 @@
 
 typedef struct ngx_queue_s  ngx_queue_t;
 
+#ifdef WITH_SUBOBJECT_SAFE
+#define QUEUE_CONTAINER_BOUNDS __subobject_use_container_bounds
+#else
+#define QUEUE_CONTAINER_BOUNDS
+#endif
+
 struct ngx_queue_s {
     ngx_queue_t  *prev;
     ngx_queue_t  *next;
-};
+} QUEUE_CONTAINER_BOUNDS;
+#undef QUEUE_CONTAINER_BOUNDS
 
 
 #define ngx_queue_init(q)                                                     \
