@@ -872,7 +872,11 @@ ngx_http_core_run_phases(ngx_http_request_t *r)
 
     while (ph[r->phase_handler].checker) {
 
+#ifdef WITH_SUBOBJECT_AGGRESSIVE
+        rc = ph[r->phase_handler].checker(r, __unbounded_addressof(ph[r->phase_handler]));
+#else
         rc = ph[r->phase_handler].checker(r, &ph[r->phase_handler]);
+#endif
 
         if (rc == NGX_OK) {
             return;
