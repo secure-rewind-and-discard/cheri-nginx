@@ -2528,7 +2528,11 @@ ngx_http_regex_compile(ngx_conf_t *cf, ngx_regex_compile_t *rc)
     for (i = 0; i < n; i++) {
         rv[i].capture = 2 * ((p[0] << 8) + p[1]);
 
+#ifdef WITH_SUBOBJECT_AGGRESSIVE
+        name.data = __unbounded_addressof(p[2]);
+#else
         name.data = &p[2];
+#endif
         name.len = ngx_strlen(name.data);
 
         v = ngx_http_add_variable(cf, &name, NGX_HTTP_VAR_CHANGEABLE);
