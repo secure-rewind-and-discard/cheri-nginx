@@ -373,6 +373,9 @@ struct ngx_http_posted_request_s {
 typedef ngx_int_t (*ngx_http_handler_pt)(ngx_http_request_t *r);
 typedef void (*ngx_http_event_handler_pt)(ngx_http_request_t *r);
 
+typedef struct {
+    ngx_http_posted_request_t         terminal_posted_request;
+} ngx_http_ephemeral_t;
 
 struct ngx_http_request_s {
     uint32_t                          signature;         /* "HTTP" */
@@ -581,8 +584,30 @@ struct ngx_http_request_s {
     /*
      * a memory that can be reused after parsing a request line
      * via ngx_http_ephemeral_t
+     *
+     * XXX-AM: This seems to be implicitly an union of the following fields.
+     * Sub-object bounds require us to be explicit.
      */
-
+#ifdef WITH_SUBOBJECT_SAFE
+    union {
+        struct {
+            u_char                   *uri_start;
+            u_char                   *uri_end;
+            u_char                   *uri_ext;
+            u_char                   *args_start;
+            u_char                   *request_start;
+            u_char                   *request_end;
+            u_char                   *method_end;
+            u_char                   *schema_start;
+            u_char                   *schema_end;
+            u_char                   *host_start;
+            u_char                   *host_end;
+            u_char                   *port_start;
+            u_char                   *port_end;
+        };
+        ngx_http_ephemeral_t _ephemeral;
+    };
+#else
     u_char                           *uri_start;
     u_char                           *uri_end;
     u_char                           *uri_ext;
@@ -596,18 +621,18 @@ struct ngx_http_request_s {
     u_char                           *host_end;
     u_char                           *port_start;
     u_char                           *port_end;
+#endif
 
     unsigned                          http_minor:16;
     unsigned                          http_major:16;
 };
 
 
-typedef struct {
-    ngx_http_posted_request_t         terminal_posted_request;
-} ngx_http_ephemeral_t;
-
-
+#ifdef WITH_SUBOBJECT_SAFE
+#define ngx_http_ephemeral(r)  (void *) (&r->_ephemeral)
+#else
 #define ngx_http_ephemeral(r)  (void *) (&r->uri_start)
+#endif
 
 
 extern ngx_http_header_t       ngx_http_headers_in[];
