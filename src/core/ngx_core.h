@@ -42,6 +42,12 @@ typedef void (*ngx_connection_handler_pt)(ngx_connection_t *c);
 #define  NGX_DECLINED   -5
 #define  NGX_ABORT      -6
 
+#ifdef WITH_SUBOBJECT_AGGRESSIVE
+#ifndef WITH_SUBOBJECT_SAFE
+#define WITH_SUBOBJECT_SAFE
+#endif
+#endif
+
 #ifdef WITH_SUBOBJECT_SAFE
 #define _ngx_safe_no_subobject_bounds __no_subobject_bounds
 #define _ngx_safe_container_bounds __subobject_use_container_bounds
@@ -49,6 +55,16 @@ typedef void (*ngx_connection_handler_pt)(ngx_connection_t *c);
 #define _ngx_safe_no_subobject_bounds
 #define _ngx_safe_container_bounds
 #endif /* WITH_SUBOBJECT_SAFE */
+
+#ifdef WITH_SUBOBJECT_AGGRESSIVE
+#define _ngx_aggressive_no_subobject_bounds __no_subobject_bounds
+#define _ngx_aggressive_unbounded_addressof __unbounded_addressof
+#define _ngx_aggressive_bounded_addressof __bounded_addressof
+#else
+#define _ngx_aggressive_no_subobject_bounds
+#define _ngx_aggressive_unbounded_addressof(x) (&x)
+#define _ngx_aggressive_bounded_addressof(x, sz) (&x)
+#endif /* WITH_SUBOBJECT_AGGRESSIVE */
 
 #include <ngx_errno.h>
 #include <ngx_atomic.h>

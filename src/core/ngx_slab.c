@@ -4,6 +4,7 @@
  * Copyright (C) Nginx, Inc.
  */
 
+#include <cheri/cheric.h>
 #include <ngx_config.h>
 #include <ngx_core.h>
 
@@ -40,8 +41,11 @@
 
 #endif
 
-
-#define ngx_slab_slots(pool)                                                  \
+/*
+ * XXX-AM: It would be nice to make this exactly representable.
+ * We should probably cache a capability to the slots in the pool?
+ */
+#define ngx_slab_slots(pool)                                        \
     (ngx_slab_page_t *) ((u_char *) (pool) + sizeof(ngx_slab_pool_t))
 
 #define ngx_slab_page_type(page)   cheri_get_low_ptr_bits((page)->prev, NGX_SLAB_PAGE_MASK)
@@ -124,7 +128,12 @@ ngx_slab_init(ngx_slab_pool_t *pool)
 
     p += n * sizeof(ngx_slab_page_t);
 
+#if __has_feature(capabilities)
+    pool->stats = (ngx_slab_stat_t *) cheri_setbounds(
+        p, n * sizeof(ngx_slab_stat_t));
+#else
     pool->stats = (ngx_slab_stat_t *) p;
+#endif
     ngx_memzero(pool->stats, n * sizeof(ngx_slab_stat_t));
 
     p += n * sizeof(ngx_slab_stat_t);
@@ -133,7 +142,11 @@ ngx_slab_init(ngx_slab_pool_t *pool)
 
     pages = (ngx_uint_t) (size / (ngx_pagesize + sizeof(ngx_slab_page_t)));
 
+#if __has_feature(capabilities)
+    pool->pages = (ngx_slab_page_t *) cheri_setbounds(p, pages * sizeof(ngx_slab_page_t));
+#else
     pool->pages = (ngx_slab_page_t *) p;
+#endif
     ngx_memzero(pool->pages, pages * sizeof(ngx_slab_page_t));
 
     page = pool->pages;
@@ -741,7 +754,8 @@ ngx_slab_free_pages(ngx_slab_pool_t *pool, ngx_slab_page_t *page,
     page->slab = pages--;
 
     if (pages) {
-        ngx_memzero(&page[1], pages * sizeof(ngx_slab_page_t));
+        ngx_memzero(_ngx_aggressive_unbounded_addressof(page[1]),
+                    pages * sizeof(ngx_slab_page_t));
     }
 
     if (page->next) {

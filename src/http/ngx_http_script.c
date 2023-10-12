@@ -511,19 +511,11 @@ ngx_http_script_compile(ngx_http_script_compile_t *sc)
                     goto invalid_variable;
                 }
 
-#ifdef WITH_SUBOBJECT_AGGRESSIVE
-                name.data = __unbounded_addressof(sc->source->data[i]);
-#else
-                name.data = &sc->source->data[i];
-#endif
+                name.data = _ngx_aggressive_unbounded_addressof(sc->source->data[i]);
 
             } else {
                 bracket = 0;
-#ifdef WITH_SUBOBJECT_AGGRESSIVE
-                name.data = __unbounded_addressof(sc->source->data[i]);
-#else
-                name.data = &sc->source->data[i];
-#endif
+                name.data = _ngx_aggressive_unbounded_addressof(sc->source->data[i]);
             }
 
             for ( /* void */ ; i < sc->source->len; i++, name.len++) {
@@ -579,11 +571,7 @@ ngx_http_script_compile(ngx_http_script_compile_t *sc)
             continue;
         }
 
-#ifdef WITH_SUBOBJECT_AGGRESSIVE
-        name.data = __unbounded_addressof(sc->source->data[i]);
-#else
-        name.data = &sc->source->data[i];
-#endif
+        name.data = _ngx_aggressive_unbounded_addressof(sc->source->data[i]);
 
         while (i < sc->source->len) {
 
