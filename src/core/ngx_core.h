@@ -8,7 +8,7 @@
 #ifndef _NGX_CORE_H_INCLUDED_
 #define _NGX_CORE_H_INCLUDED_
 
-
+#include <sys/cdefs.h>
 #include <ngx_config.h>
 
 
@@ -42,6 +42,13 @@ typedef void (*ngx_connection_handler_pt)(ngx_connection_t *c);
 #define  NGX_DECLINED   -5
 #define  NGX_ABORT      -6
 
+#ifdef WITH_SUBOBJECT_SAFE
+#define _ngx_safe_no_subobject_bounds __no_subobject_bounds
+#define _ngx_safe_container_bounds __subobject_use_container_bounds
+#else
+#define _ngx_safe_no_subobject_bounds
+#define _ngx_safe_container_bounds
+#endif /* WITH_SUBOBJECT_SAFE */
 
 #include <ngx_errno.h>
 #include <ngx_atomic.h>
