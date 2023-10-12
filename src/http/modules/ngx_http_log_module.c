@@ -1621,11 +1621,7 @@ ngx_http_log_compile_format(ngx_conf_t *cf, ngx_array_t *flushes,
                 return NGX_CONF_ERROR;
             }
 
-#ifdef WITH_SUBOBJECT_AGGRESSIVE
-            data = __unbounded_addressof(value[s].data[i]);
-#else
-            data = &value[s].data[i];
-#endif
+            data = _ngx_aggressive_unbounded_addressof(value[s].data[i]);
 
             if (value[s].data[i] == '$') {
 
@@ -1640,19 +1636,11 @@ ngx_http_log_compile_format(ngx_conf_t *cf, ngx_array_t *flushes,
                         goto invalid;
                     }
 
-#ifdef WITH_SUBOBJECT_AGGRESSIVE
-                    var.data = __unbounded_addressof(value[s].data[i]);
-#else
-                    var.data = &value[s].data[i];
-#endif
+                    var.data = _ngx_aggressive_unbounded_addressof(value[s].data[i]);
 
                 } else {
                     bracket = 0;
-#ifdef WITH_SUBOBJECT_AGGRESSIVE
-                    var.data = __unbounded_addressof(value[s].data[i]);
-#else
-                    var.data = &value[s].data[i];
-#endif
+                    var.data = _ngx_aggressive_unbounded_addressof(value[s].data[i]);
                 }
 
                 for (var.len = 0; i < value[s].len; i++, var.len++) {
