@@ -19,12 +19,6 @@ typedef ngx_int_t   ngx_rbtree_key_int_t;
 
 typedef struct ngx_rbtree_node_s  ngx_rbtree_node_t;
 
-#ifdef WITH_SUBOBJECT_SAFE
-#define RBTREE_CONTAINER_BOUNDS __subobject_use_container_bounds
-#else
-#define RBTREE_CONTAINER_BOUNDS
-#endif
-
 struct ngx_rbtree_node_s {
     ngx_rbtree_key_t       key;
     ngx_rbtree_node_t     *left;
@@ -32,8 +26,7 @@ struct ngx_rbtree_node_s {
     ngx_rbtree_node_t     *parent;
     u_char                 color;
     u_char                 data;
-} RBTREE_CONTAINER_BOUNDS;
-#undef RBTREE_CONTAINER_BOUNDS
+} _ngx_safe_container_bounds;
 
 
 typedef struct ngx_rbtree_s  ngx_rbtree_t;
