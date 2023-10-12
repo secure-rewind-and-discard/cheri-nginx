@@ -697,15 +697,17 @@ ngx_slab_alloc_pages(ngx_slab_pool_t *pool, ngx_uint_t pages)
         if (page->slab >= pages) {
 
             if (page->slab > pages) {
-                page[page->slab - 1].prev = (uintptr_t) &page[pages];
+                page[page->slab - 1].prev =
+                    (uintptr_t) _ngx_aggressive_unbounded_addressof(page[pages]);
 
                 page[pages].slab = page->slab - pages;
                 page[pages].next = page->next;
                 page[pages].prev = page->prev;
 
                 p = (ngx_slab_page_t *) page->prev;
-                p->next = &page[pages];
-                page->next->prev = (uintptr_t) &page[pages];
+                p->next = _ngx_aggressive_unbounded_addressof(page[pages]);
+                page->next->prev =
+                    (uintptr_t) _ngx_aggressive_unbounded_addressof(page[pages]);
 
             } else {
                 p = (ngx_slab_page_t *) page->prev;

@@ -8,7 +8,6 @@
 #ifndef _NGX_SLAB_H_INCLUDED_
 #define _NGX_SLAB_H_INCLUDED_
 
-#include <sys/cdefs.h>
 #include <ngx_config.h>
 #include <ngx_core.h>
 
@@ -17,7 +16,7 @@ typedef struct ngx_slab_page_s  ngx_slab_page_t;
 
 struct ngx_slab_page_s {
     ptraddr_t         slab;
-    ngx_slab_page_t  *next __no_subobject_bounds;
+    ngx_slab_page_t  *next;
     uintptr_t         prev;
 };
 
