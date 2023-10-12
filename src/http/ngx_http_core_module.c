@@ -1662,7 +1662,11 @@ ngx_http_set_exten(ngx_http_request_t *r)
         if (r->uri.data[i] == '.' && r->uri.data[i - 1] != '/') {
 
             r->exten.len = r->uri.len - i - 1;
+#ifdef WITH_SUBOBJECT_AGGRESSIVE
+            r->exten.data = __bounded_addressof(r->uri.data[i + 1], r->exten.len);
+#else
             r->exten.data = &r->uri.data[i + 1];
+#endif
 
             return;
 
@@ -4796,7 +4800,13 @@ ngx_http_core_error_page(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
         }
 
         if (value[i].len > 1) {
+#ifdef WITH_SUBOBJECT_AGGRESSIVE
+            overwrite = ngx_atoi(
+                __bounded_addressof(value[i].data[1], value[i].len - 1),
+                value[i].len - 1);
+#else
             overwrite = ngx_atoi(&value[i].data[1], value[i].len - 1);
+#endif
 
             if (overwrite == NGX_ERROR) {
                 ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
