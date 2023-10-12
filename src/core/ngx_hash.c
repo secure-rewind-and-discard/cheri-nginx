@@ -855,7 +855,10 @@ wildcard:
 
     /* wildcard hash */
 
-    k = ngx_hash_strlow(&key->data[skip], &key->data[skip], last - skip);
+    k = ngx_hash_strlow(
+        _ngx_aggressive_bounded_addressof(key->data[skip], last - skip),
+        _ngx_aggressive_bounded_addressof(key->data[skip], last - skip),
+        last - skip);
 
     k %= ha->hsize;
 
