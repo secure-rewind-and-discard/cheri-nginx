@@ -4928,7 +4928,10 @@ ngx_http_core_resolver(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     value = cf->args->elts;
 
-    clcf->resolver = ngx_resolver_create(cf, &value[1], cf->args->nelts - 1);
+    clcf->resolver = ngx_resolver_create(cf,
+        _ngx_aggressive_bounded_addressof(value[1],
+            sizeof(*value) * (cf->args->nelts - 1)),
+        cf->args->nelts - 1);
     if (clcf->resolver == NULL) {
         return NGX_CONF_ERROR;
     }
