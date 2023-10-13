@@ -224,10 +224,11 @@ ngx_sock_ntop(struct sockaddr *sa, socklen_t socklen, u_char *text, size_t len,
             text[n++] = '[';
         }
 
-        n = ngx_inet6_ntop(sin6->sin6_addr.s6_addr, &text[n], len);
+        n = ngx_inet6_ntop(sin6->sin6_addr.s6_addr,
+            _ngx_aggressive_unbounded_addressof(text[n]), len);
 
         if (port) {
-            n = ngx_sprintf(&text[1 + n], "]:%d",
+            n = ngx_sprintf(_ngx_aggressive_unbounded_addressof(text[1 + n]), "]:%d",
                             ntohs(sin6->sin6_port)) - text;
         }
 
