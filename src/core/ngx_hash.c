@@ -79,7 +79,8 @@ ngx_hash_find_wc_head(ngx_hash_wildcard_t *hwc, u_char *name, size_t len)
     ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, 0, "key:\"%ui\"", key);
 #endif
 
-    value = ngx_hash_find(&hwc->hash, key, &name[n], len - n);
+    value = ngx_hash_find(&hwc->hash, key,
+        _ngx_aggressive_unbounded_addressof(name[n]), len - n);
 
 #if 0
     ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, 0, "value:\"%p\"", value);
@@ -189,7 +190,8 @@ ngx_hash_find_wc_tail(ngx_hash_wildcard_t *hwc, u_char *name, size_t len)
 
             hwc = (ngx_hash_wildcard_t *) cheri_clear_low_ptr_bits((uintptr_t)value, 3);
 
-            value = ngx_hash_find_wc_tail(hwc, &name[i], len - i);
+            value = ngx_hash_find_wc_tail(hwc,
+                _ngx_aggressive_bounded_addressof(name[i], len - i), len - i);
 
             if (value) {
                 return value;
