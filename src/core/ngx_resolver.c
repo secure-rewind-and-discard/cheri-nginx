@@ -1855,7 +1855,7 @@ found:
         goto short_response;
     }
 
-    qs = (ngx_resolver_qs_t *) &buf[i];
+    qs = (ngx_resolver_qs_t *) _ngx_aggressive_bounded_addressof(buf[i], sizeof(*qs));
 
     qtype = (qs->type_hi << 8) + qs->type_lo;
     qclass = (qs->class_hi << 8) + qs->class_lo;
@@ -2189,7 +2189,7 @@ ngx_resolver_process_a(ngx_resolver_t *r, u_char *buf, size_t n,
             goto short_response;
         }
 
-        an = (ngx_resolver_an_t *) &buf[i];
+        an = (ngx_resolver_an_t *) _ngx_aggressive_bounded_addressof(buf[i], sizeof(*an));
 
         type = (an->type_hi << 8) + an->type_lo;
         class = (an->class_hi << 8) + an->class_lo;
@@ -2257,7 +2257,7 @@ ngx_resolver_process_a(ngx_resolver_t *r, u_char *buf, size_t n,
 
         case NGX_RESOLVE_CNAME:
 
-            cname = &buf[i];
+            cname = _ngx_aggressive_unbounded_addressof(buf[i]);
 
             break;
 
@@ -2347,7 +2347,7 @@ ngx_resolver_process_a(ngx_resolver_t *r, u_char *buf, size_t n,
                 i += 1 + buf[i];
             }
 
-            an = (ngx_resolver_an_t *) &buf[i];
+            an = (ngx_resolver_an_t *) _ngx_aggressive_bounded_addressof(buf[i], sizeof(*an));
 
             type = (an->type_hi << 8) + an->type_lo;
             len = (an->len_hi << 8) + an->len_lo;
@@ -2374,7 +2374,7 @@ ngx_resolver_process_a(ngx_resolver_t *r, u_char *buf, size_t n,
 #if (NGX_HAVE_INET6)
             else if (type == NGX_RESOLVE_AAAA) {
 
-                ngx_memcpy(addr6[j].s6_addr, &buf[i], 16);
+                ngx_memcpy(addr6[j].s6_addr, _ngx_aggressive_bounded_addressof(buf[i], 16), 16);
 
                 if (++j == naddrs) {
 
@@ -2761,7 +2761,7 @@ ngx_resolver_process_srv(ngx_resolver_t *r, u_char *buf, size_t n,
                 goto short_response;
             }
 
-            if (ngx_resolver_copy(r, NULL, buf, &buf[i + 6], buf + n)
+            if (ngx_resolver_copy(r, NULL, buf, _ngx_aggressive_unbounded_addressof(buf[i + 6]), buf + n)
                 != NGX_OK)
             {
                 goto failed;
@@ -2773,7 +2773,7 @@ ngx_resolver_process_srv(ngx_resolver_t *r, u_char *buf, size_t n,
 
         case NGX_RESOLVE_CNAME:
 
-            cname = &buf[i];
+            cname = _ngx_aggressive_unbounded_addressof(buf[i]);
 
             break;
 
@@ -2842,7 +2842,7 @@ ngx_resolver_process_srv(ngx_resolver_t *r, u_char *buf, size_t n,
 
                 srvs[j].port = (buf[i + 4] << 8) + buf[i + 5];
 
-                if (ngx_resolver_copy(r, &srvs[j].name, buf, &buf[i + 6],
+                if (ngx_resolver_copy(r, &srvs[j].name, buf, _ngx_aggressive_unbounded_addressof(buf[i + 6]),
                                       buf + n)
                     != NGX_OK)
                 {
@@ -4008,11 +4008,11 @@ ngx_resolver_copy(ngx_resolver_t *r, ngx_str_t *name, u_char *buf, u_char *src,
             }
 
             n = ((n & 0x3f) << 8) + *p;
-            p = &buf[n];
+            p = _ngx_aggressive_unbounded_addressof(buf[n]);
 
         } else {
             len += 1 + n;
-            p = &p[n];
+            p = _ngx_aggressive_unbounded_addressof(p[n]);
         }
 
         if (p >= last) {
@@ -4057,7 +4057,7 @@ done:
 
         if (n & 0xc0) {
             n = ((n & 0x3f) << 8) + *src;
-            src = &buf[n];
+            src = _ngx_aggressive_unbounded_addressof(buf[n]);
 
         } else {
             ngx_strlow(dst, src, n);
