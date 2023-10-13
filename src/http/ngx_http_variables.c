@@ -2599,7 +2599,7 @@ ngx_http_regex_exec(ngx_http_request_t *r, ngx_http_regex_t *re, ngx_str_t *s)
         vv->valid = 1;
         vv->no_cacheable = 0;
         vv->not_found = 0;
-        vv->data = &s->data[r->captures[n]];
+        vv->data = _ngx_aggressive_unbounded_addressof(s->data[r->captures[n]]);
 
 #if (NGX_DEBUG)
         {

@@ -1399,7 +1399,8 @@ ngx_http_script_copy_capture_code(ngx_http_script_engine_t *e)
                                                cap[n + 1] - cap[n],
                                                NGX_ESCAPE_ARGS);
         } else {
-            e->pos = ngx_copy(pos, &p[cap[n]], cap[n + 1] - cap[n]);
+            e->pos = ngx_copy(pos, _ngx_aggressive_unbounded_addressof(p[cap[n]]),
+                              cap[n + 1] - cap[n]);
         }
     }
 
