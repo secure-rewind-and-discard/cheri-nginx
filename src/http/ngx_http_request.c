@@ -390,7 +390,7 @@ ngx_http_wait_request_handler(ngx_event_t *rev)
     int err = 0;
 
 #ifdef USE_SDRAD_CHERI
-        err = cheri_domain_setup(NESTED_DOMAIN);
+        err = cheri_domain_setup(NGX_NESTED_DOMAIN);
 #endif
 
     if(err == 0 || err == 1){
