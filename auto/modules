@@ -55,6 +55,12 @@ if [ $NGX_TEST_BUILD_SOLARIS_SENDFILEV = YES ]; then
     CORE_SRCS="$CORE_SRCS $SOLARIS_SENDFILEV_SRCS"
 fi
 
+# Parse the --with-cc-opt argument to check for -DUSE_SDRAD_CHERI
+if echo "$NGX_CC_OPT" | grep -q -e '-DUSE_SDRAD_CHERI'; then
+    USE_SDRAD_CHERI=true
+else
+    USE_SDRAD_CHERI=false
+fi
 
 if [ $HTTP = YES ]; then
     HTTP_MODULES=
@@ -78,6 +84,9 @@ if [ $HTTP = YES ]; then
                          src/http/ngx_http_script.h \
                          src/http/ngx_http_upstream.h \
                          src/http/ngx_http_upstream_round_robin.h"
+        if [ "$USE_SDRAD_CHERI" = true ]; then
+        ngx_module_deps="$ngx_module_deps src/http/ngx_http_parser_wrap.h"
+        fi
         ngx_module_srcs="src/http/ngx_http.c \
                          src/http/ngx_http_core_module.c \
                          src/http/ngx_http_special_response.c \
@@ -89,6 +98,9 @@ if [ $HTTP = YES ]; then
                          src/http/ngx_http_script.c \
                          src/http/ngx_http_upstream.c \
                          src/http/ngx_http_upstream_round_robin.c"
+        if [ "$USE_SDRAD_CHERI" = true ]; then
+        ngx_module_srcs="$ngx_module_srcs src/http/ngx_http_parser_wrap.c"
+        fi
         ngx_module_libs=
         ngx_module_link=YES
 
